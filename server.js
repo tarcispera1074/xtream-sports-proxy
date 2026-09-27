@@ -264,11 +264,40 @@ function isAuthorized(queryUser, queryPass) {
   return isProxyUser || isUpstreamUser;
 }
 
+function parseRequestBody(req) {
+  return new Promise((resolve) => {
+    if (req.method !== 'POST') return resolve({});
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+      if (body.length > 2 * 1024 * 1024) req.destroy();
+    });
+    req.on('end', () => {
+      const cType = (req.headers['content-type'] || '').toLowerCase();
+      if (cType.includes('application/json')) {
+        try { return resolve(JSON.parse(body)); } catch (e) {}
+      }
+      try {
+        const params = new URLSearchParams(body);
+        const result = {};
+        for (const [key, val] of params.entries()) {
+          result[key] = val;
+        }
+        return resolve(result);
+      } catch (e) {
+        return resolve({});
+      }
+    });
+    req.on('error', () => resolve({}));
+  });
+}
+
 // HTTP Server
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
-  const query = parsedUrl.query;
+  const postParams = await parseRequestBody(req);
+  const query = { ...parsedUrl.query, ...postParams };
   const hostHeader = req.headers.host || `localhost:${config.proxy.port}`;
 
   // CORS headers
@@ -282,8 +311,22 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 1. Xtream Codes Player API: /player_api.php
-  if (pathname === '/player_api.php') {
+  // Detect HTTPS dynamically (vital for Render, Cloudflare Tunnel, and reverse proxies)
+  const isHttps = Boolean(
+    (req.headers['x-forwarded-proto'] === 'https') ||
+    (req.headers['x-forwarded-ssl'] === 'on') ||
+    req.connection.encrypted ||
+    (req.socket && req.socket.encrypted) ||
+    hostHeader.includes('onrender.com') ||
+    hostHeader.includes('trycloudflare.com')
+  );
+  const serverProtocol = isHttps ? 'https' : 'http';
+  const serverPort = hostHeader.includes(':')
+    ? hostHeader.split(':')[1]
+    : (isHttps ? '443' : '80');
+
+  // 1. Xtream Codes Player API: /player_api.php or /player_api
+  if (pathname === '/player_api.php' || pathname === '/player_api') {
     const username = query.username;
     const password = query.password;
 
@@ -317,9 +360,9 @@ const server = http.createServer(async (req, res) => {
         },
         server_info: {
           url: hostHeader.split(':')[0],
-          port: hostHeader.split(':')[1] || "80",
+          port: serverPort,
           https_port: "443",
-          server_protocol: "http",
+          server_protocol: serverProtocol,
           rtmp_port: "25462",
           timezone: "UTC",
           timestamp_now: Math.floor(Date.now() / 1000),
@@ -437,8 +480,8 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 3. XMLTV EPG: /xmltv.php
-  if (pathname === '/xmltv.php') {
+  // 3. XMLTV EPG: /xmltv.php or /xmltv
+  if (pathname === '/xmltv.php' || pathname === '/xmltv') {
     const username = query.username;
     const password = query.password;
     if (!isAuthorized(username, password)) {
@@ -471,8 +514,8 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 4. M3U Plus Playlist: /get.php
-  if (pathname === '/get.php') {
+  // 4. M3U Plus Playlist: /get.php or /get
+  if (pathname === '/get.php' || pathname === '/get') {
     const username = query.username;
     const password = query.password;
     if (!isAuthorized(username, password)) {
@@ -489,7 +532,7 @@ const server = http.createServer(async (req, res) => {
       const icon = s.stream_icon || '';
       const group = s.group_name || 'Sports';
       const cleanName = s.clean_name || s.name;
-      const streamUrl = `http://${hostHeader}/live/${encodeURIComponent(username)}/${encodeURIComponent(password)}/${s.stream_id}${outputExt}`;
+      const streamUrl = `${serverProtocol}://${hostHeader}/live/${encodeURIComponent(username)}/${encodeURIComponent(password)}/${s.stream_id}${outputExt}`;
 
       m3u += `#EXTINF:-1 tvg-id="${epgId}" tvg-name="${cleanName}" tvg-logo="${icon}" group-title="${group}",${s.name}\n`;
       m3u += `${streamUrl}\n`;
