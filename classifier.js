@@ -8,7 +8,8 @@ const COUNTRY_MAP = {
   'GR': 'GR', 'TR': 'TR', 'SE': 'SE', 'NO': 'NO', 'DK': 'DK', 'FI': 'FI', 
   'BE': 'BE', 'CH': 'CH', 'AT': 'AT', 'SG': 'SG', 'MY': 'MY', 'BR': 'BR', 
   'MX': 'MX', 'CL': 'CL', 'LV': 'LV', 'LT': 'LT', 'EE': 'EE', 'IL': 'IL',
-  'IE': 'IE', 'CZ': 'CZ', 'SK': 'SK', 'HU': 'HU', 'HK': 'HK', 'AS': 'AS', 'ASIA': 'AS'
+  'IE': 'IE', 'CZ': 'CZ', 'SK': 'SK', 'HU': 'HU', 'HK': 'HK', 'AS': 'AS', 'ASIA': 'AS',
+  'KR': 'KR', 'ID': 'ID'
 };
 
 function detectCountry(raw, epgId = '') {
@@ -62,13 +63,13 @@ function detectCountry(raw, epgId = '') {
   return country;
 }
 
-const ASIAN_SPORTS_PATTERN = /\b(hk\s*now|now\s*sports?|now\s*premier|hub\s*sports?|my\s*supersports?|astro\s*(supersport|arena|cricket)|sports\s*18|dd\s*sports?|d\s*sports?|star\s*sports?|sony\s*(six|ten|sports)|tens?\s*(sports?|\d)|ptv\s*sports?|geo\s*super|willow|crlife|ipl\s*\d*)\b|\ba\s*[-:]?\s*sports?\b/i;
+const ASIAN_SPORTS_PATTERN = /\b(hk\s*now|now\s*sports?|now\s*premier|hub\s*sports?|hub\s*premier|my\s*supersports?|astro\s*(supersport|arena|cricket)|sports\s*18|dd\s*sports?|d\s*sports?|star\s*sports?|sony\s*(six|ten|sports)|tens?\s*(sports?|\d)|ptv\s*sports?|geo\s*super|willow|crlife|ipl\s*\d*|coupang\s*play|mola\s*event|mola\s*ppv)\b|\ba\s*[-:]?\s*sports?\b/i;
 
 // Country & Brand categories ordered:
 // 1. AS | Asian Sports (AT THE VERY TOP)
 // 2. All US categories (consecutive)
 // 3. All UK categories (consecutive)
-// 4. Other countries descending: ZA, RS, PT, PL, NZ, IT, FR, EU, ES, DE, CA, AU, AT, AR
+// 4. Other countries descending: ZA, SE, RS, PT, PL, NZ, NO, NL, IT, IE, FR, FI, EU, ES, DK, DE, CA, AU, AT, AR
 // 5. Channel categories with Emojis listed LAST
 const BRAND_CATEGORIES = [
   // ==========================================
@@ -78,10 +79,10 @@ const BRAND_CATEGORIES = [
     id: 100,
     name: 'AS | Asian Sports',
     slug: 'as-asian-sports',
-    description: 'Astro SuperSport, Star Sports, Sony Ten, Sony Six, Sports 18, HK Now Sports, StarHub Hub Sports, PTV Sports, A-Sports, Willow',
+    description: 'Astro SuperSport, Star Sports, Sony Ten, Sony Six, Sports 18, HK Now Sports, StarHub Hub Sports & Premier, Coupang Play, Mola, PTV Sports, A-Sports, Willow',
     match: (name, cat) => {
       if (/radio/i.test(name)) return false;
-      const isUpstreamAsia = /asia.*sport|world\s*cricket/i.test(cat);
+      const isUpstreamAsia = /asia.*sport|world\s*cricket|coupang\s*play|mola\s*ppv|hub\s*premier/i.test(cat);
       const isAsianBrand = ASIAN_SPORTS_PATTERN.test(name) || ASIAN_SPORTS_PATTERN.test(cat);
       return isUpstreamAsia || isAsianBrand;
     }
@@ -160,12 +161,111 @@ const BRAND_CATEGORIES = [
       return /\b(flo\s*(sports|racing)|floracing)\b/i.test(name) || /flo\s*(racing|sports)\s*ppv/i.test(cat);
     }
   },
+  {
+    id: 108,
+    name: 'US | Flo College PPV',
+    slug: 'us-flo-college-ppv',
+    description: 'FloSports College Athletics & Championship feeds',
+    match: (name, cat) => {
+      return /flo\s*college\s*ppv/i.test(cat) || /flo\s*college/i.test(name);
+    }
+  },
+  {
+    id: 109,
+    name: 'US | NCAAB PPV',
+    slug: 'us-ncaab-ppv',
+    description: 'NCAA College Basketball live match feeds',
+    match: (name, cat) => {
+      return /ncaab\s*ppv/i.test(cat) || /\bncaab\b/i.test(name);
+    }
+  },
+  {
+    id: 110,
+    name: 'US | NCAAF PPV',
+    slug: 'us-ncaaf-ppv',
+    description: 'NCAA College Football live match feeds',
+    match: (name, cat) => {
+      return /ncaaf\s*ppv/i.test(cat) || /\bncaaf\b/i.test(name);
+    }
+  },
+  {
+    id: 111,
+    name: 'US | MILB PPV',
+    slug: 'us-milb-ppv',
+    description: 'Minor League Baseball live game feeds',
+    match: (name, cat) => {
+      return /milb\s*ppv/i.test(cat) || /\bmilb\b/i.test(name);
+    }
+  },
+  {
+    id: 112,
+    name: 'US | Tennis PPV',
+    slug: 'us-tennis-ppv',
+    description: 'WTA & ATP Tennis tournament live courts',
+    match: (name, cat) => {
+      return /us\|\s*tennis\s*ppv|ts\|\s*tennis\s*live/i.test(cat) || /\b(wta|atp)\s*(seoul|chengdu|hangzhou|beijing|tokyo|tour)/i.test(name);
+    }
+  },
+  {
+    id: 113,
+    name: 'US | Matchroom PPV',
+    slug: 'us-matchroom-ppv',
+    description: 'Matchroom Championship Snooker, Boxing & Darts feeds',
+    match: (name, cat) => {
+      return /matchroom\s*ppv/i.test(cat) || /matchroom\s*event/i.test(name);
+    }
+  },
+  {
+    id: 114,
+    name: 'US | MLS PPV',
+    slug: 'us-mls-ppv',
+    description: 'Major League Soccer live match feeds',
+    match: (name, cat) => {
+      return /us\|\s*mls\s*ppv/i.test(cat) || /:mls\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 115,
+    name: 'US | Golf PPV',
+    slug: 'us-golf-ppv',
+    description: 'PGA Tour Featured Groups & Holes',
+    match: (name, cat) => {
+      return /us\|\s*golf\s*ppv/i.test(cat) || /pga\s*tour:.*:golf\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 116,
+    name: 'US | Rugby PPV',
+    slug: 'us-rugby-ppv',
+    description: 'Major League Rugby & International rugby feeds',
+    match: (name, cat) => {
+      return /us\|\s*rugby\s*ppv/i.test(cat) || /^rugby\s*\d+\s*:/i.test(name);
+    }
+  },
+  {
+    id: 117,
+    name: 'US | DirtVision PPV',
+    slug: 'us-dirtvision-ppv',
+    description: 'DirtVision World of Outlaws Sprint Car & Dirt Track Racing',
+    match: (name, cat) => {
+      return /dirtvision\s*ppv/i.test(cat) || /dirtvision/i.test(name);
+    }
+  },
+  {
+    id: 118,
+    name: 'US | Max & Paramount+ PPV',
+    slug: 'us-max-paramount-ppv',
+    description: 'Live sports event feeds on Max US & Paramount+ (NHL, MLB, UEFA, Serie A)',
+    match: (name, cat) => {
+      return /us\|\s*(max\s*ppv|paramount\+\s*ppv)/i.test(cat) || /:(max\s*us|paramount\+)\s+\d+/i.test(name);
+    }
+  },
 
   // ==========================================
   // --- GROUP 2: UNITED KINGDOM (UK) ---
   // ==========================================
   {
-    id: 108,
+    id: 119,
     name: 'UK | Sky Sports',
     slug: 'uk-sky-sports',
     description: 'UK Sky Sports Main Event, Premier League, Football, F1, Cricket, Golf, Action, Arena, Tennis, News, Mix',
@@ -176,7 +276,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 109,
+    id: 120,
     name: 'UK | TNT Sports / BT Sport',
     slug: 'uk-tnt-sports',
     description: 'TNT Sports 1, 2, 3, 4, Ultimate, Extra (formerly BT Sport)',
@@ -185,7 +285,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 110,
+    id: 121,
     name: 'UK | DAZN',
     slug: 'uk-dazn',
     description: 'DAZN 1, DAZN 4K, DAZN PPV 1-26, DAZN UK',
@@ -194,7 +294,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 111,
+    id: 122,
     name: 'UK | EPL Premier League PPV',
     slug: 'uk-epl-ppv',
     description: 'Premier League team dedicated feeds (Man Utd, City, Liverpool, Arsenal, Chelsea, Spurs) and EPL VIP feeds',
@@ -203,16 +303,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 112,
-    name: 'UK | National League PPV',
-    slug: 'uk-national-league-ppv',
-    description: 'UK National League live match feeds',
+    id: 123,
+    name: 'UK | Championship PPV',
+    slug: 'uk-championship-ppv',
+    description: 'English EFL Championship team live match feeds',
     match: (name, cat) => {
-      return /national\s*league\s*ppv/i.test(cat) || /\bnational\s*league\s*\d+\b/i.test(name);
+      return /championship\s*ppv/i.test(cat) || /^champ:\s*/i.test(name);
     }
   },
   {
-    id: 113,
+    id: 124,
     name: 'UK | League One & Two PPV',
     slug: 'uk-league-one-two-ppv',
     description: 'EFL League One & League Two team match feeds',
@@ -221,7 +321,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 114,
+    id: 125,
+    name: 'UK | National League PPV',
+    slug: 'uk-national-league-ppv',
+    description: 'UK National League live match feeds',
+    match: (name, cat) => {
+      return /national\s*league\s*ppv/i.test(cat) || /\bnational\s*league\s*\d+\b/i.test(name);
+    }
+  },
+  {
+    id: 126,
     name: 'UK | Premier League+ & Super League PPV',
     slug: 'uk-premier-plus-super-league',
     description: 'Premier League+ and Betfred Rugby Super League Plus live event feeds',
@@ -229,12 +338,68 @@ const BRAND_CATEGORIES = [
       return /premier\s*league\+\s*ppv|super\s*league\s*plus\s*ppv/i.test(cat) || /\b(premier\s*league\+\s*\d+|super\s*league\s*plus)\b/i.test(name);
     }
   },
+  {
+    id: 127,
+    name: 'UK | UEFA Champions League PPV',
+    slug: 'uk-uefa-cl-ppv',
+    description: 'UEFA Champions League & Europa League match feeds',
+    match: (name, cat) => {
+      return /(uk|us)\|\s*uefa\s*ppv/i.test(cat) || /^uefa\s*\|\s*\d+/i.test(name);
+    }
+  },
+  {
+    id: 128,
+    name: 'UK | Scottish Football PPV (SPFL & Cup)',
+    slug: 'uk-scottish-football-ppv',
+    description: 'Scottish Premiership (SPFL) and Scottish Cup live match feeds',
+    match: (name, cat) => {
+      return /spfl|scottish\s*cup/i.test(cat) || /^spfl:\s*|^scottish\s*cup\s*\d+:/i.test(name);
+    }
+  },
+  {
+    id: 129,
+    name: 'UK | European League Club PPV',
+    slug: 'uk-euro-club-ppv',
+    description: 'Real Madrid, Barcelona, Atletico, Juventus, Inter, Milan dedicated match feeds',
+    match: (name, cat) => {
+      return /la\s*liga\s*team\s*ppv|serie\s*a\s*team\s*ppv/i.test(cat) || /uk:\s*(la\s*liga|serie\s*a)\s*-\s*/i.test(name);
+    }
+  },
+  {
+    id: 130,
+    name: 'UK | Prime & BBC Sports PPV',
+    slug: 'uk-prime-bbc-ppv',
+    description: 'Amazon Prime Video UK sports & BBC Stream pop-up channels',
+    match: (name, cat) => {
+      return /amazon\s*prime\s*ppv|bbc\s*stream\s*ppv|mono\s*max\s*ppv|hbo\s*max\s*ppv/i.test(cat) ||
+             /uk:\s*(amazon\s*\d+|bbc\s*stream|mono\s*max|hbo\s*max)\s*ppv/i.test(name);
+    }
+  },
+  {
+    id: 131,
+    name: 'UK | Ligue 1 & Friendlies PPV',
+    slug: 'uk-ligue1-psf-ppv',
+    description: 'French Ligue 1 match feeds & Pre-Season Friendlies (PSF)',
+    match: (name, cat) => {
+      return /ligue\s*1\s*ppv|psf\s*ppv/i.test(cat) || /^uk:\s*ligue\s*1|^psf\d+/i.test(name);
+    }
+  },
+  {
+    id: 132,
+    name: 'UK | Darts, Rugby & Volleyball PPV',
+    slug: 'uk-darts-rugby-ppv',
+    description: 'PDC Board Darts Championship, FloRugby & Volleyball World feeds',
+    match: (name, cat) => {
+      return /pdc\s*board|florugby|volley\s*ball\s*world|tt\s*races/i.test(cat) ||
+             /^pdc\s*board|^florugby|^uk:\s*volley|^uk:\s*tt\s*races/i.test(name);
+    }
+  },
 
   // ==========================================
   // --- GROUP 3: OTHER COUNTRIES (DESCENDING) ---
   // ==========================================
   {
-    id: 115,
+    id: 133,
     name: 'ZA | SuperSport',
     slug: 'za-supersport',
     description: 'SuperSport Premier League, Grandstand, Football, Variety 1-4, Action, Rugby, Cricket, PSL',
@@ -243,7 +408,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 116,
+    id: 134,
+    name: 'SE | Nordic Sports PPV (Play+ & TV4 Play)',
+    slug: 'se-nordic-sports-ppv',
+    description: 'Swedish Telia Play+, TV4 Play, Expressen sports feeds (ATP Tennis, Hockey, Soccer)',
+    match: (name, cat) => {
+      return /se\|\s*(play\+|tv4\s*play|expressen)\s*ppv/i.test(cat) || /:(telia\s*play\s*se|tv4\s*play\s*se|expressen)\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 135,
     name: 'RS | Arena Sport',
     slug: 'rs-arena-sport',
     description: 'Arena Sport 1-10, Arena Premium 1-3 Serbia & Balkans',
@@ -252,7 +426,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 117,
+    id: 136,
     name: 'PT | Sport TV & Premiere',
     slug: 'pt-sport-tv-premiere',
     description: 'Sport TV 1-6 Portugal, SporTV 1-3 Brazil, Premiere 1-8, A Bola TV, Combate',
@@ -262,17 +436,17 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 118,
+    id: 137,
     name: 'PL | Sports (Canal+, Sportklub)',
     slug: 'pl-sports',
-    description: 'Canal+ Sport 1-5 Poland, Canal+ 360, Canal+ Now, Sportklub, TVP Sport',
+    description: 'Canal+ Sport 1-5 Poland, Canal+ 360, Canal+ Now, Sportklub, TVP Sport, Walki PPV (KSW, Fame MMA)',
     match: (name, cat, country) => {
-      const isPolish = country === 'PL' || /\bpl\s*:/i.test(name) || /sportowe|sport\s*tvn/i.test(cat);
-      return isPolish && (/\b(canal\+\s*(360|now|sport)|sportklub|tvp\s*sport)\b/i.test(name) || /sportowe/i.test(cat));
+      const isPolish = country === 'PL' || /\bpl\s*:/i.test(name) || /sportowe|sport\s*tvn|walki\s*ppv/i.test(cat);
+      return isPolish && (/\b(canal\+\s*(360|now|sport)|sportklub|tvp\s*sport|ksw|fame\s*mma|prime\s*mma)\b/i.test(name) || /sportowe|walki\s*ppv/i.test(cat));
     }
   },
   {
-    id: 119,
+    id: 138,
     name: 'NZ | Sky Sport',
     slug: 'nz-sky-sport',
     description: 'New Zealand Sky Sport 1 through 9, Rugby, Premier League',
@@ -282,7 +456,34 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 120,
+    id: 139,
+    name: 'NO | TV2 Play & VGTV Sports PPV',
+    slug: 'no-tv2-vgtv-ppv',
+    description: 'Norway TV2 Play & VGTV sports event feeds (Bicycle, Tennis, Football)',
+    match: (name, cat) => {
+      return /no\|\s*(tv2\s*play|vgtv)/i.test(cat) || /:(tv2play\s*no|vg)\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 140,
+    name: 'NL | Sports PPV (Viaplay & Max)',
+    slug: 'nl-sports-ppv',
+    description: 'Dutch Viaplay TV & Max Eurosport live feeds',
+    match: (name, cat) => {
+      return /nl\|\s*(viaplay|max\s*ppv)/i.test(cat) || /:(viaplay\s*nl|max\s*nl)\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 141,
+    name: 'IT | Serie A / B / C PPV',
+    slug: 'it-serie-a-ppv',
+    description: 'Italian Serie A, Serie B, Serie C & Tim Vision match feeds',
+    match: (name, cat) => {
+      return /it\|\s*serie\s*a/i.test(cat) || /tim\s*vision\s*serie\s*a/i.test(name);
+    }
+  },
+  {
+    id: 142,
     name: 'IT | Sky Sport',
     slug: 'it-sky-sport',
     description: 'Italian Sky Sport Calcio, Uno, F1, MotoGP, Football, Tennis',
@@ -293,7 +494,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 121,
+    id: 143,
     name: 'IT | DAZN',
     slug: 'it-dazn',
     description: 'DAZN 1, DAZN 2, DAZN Zona Italy',
@@ -302,16 +503,52 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 122,
-    name: 'FR | Canal+ Sport & RMC',
-    slug: 'fr-canal-rmc-sport',
-    description: 'Canal+ Sport, Canal+ Foot, Canal+ Live, RMC Sport 1-4, L\'Equipe',
+    id: 144,
+    name: 'IE | Clubber GAA PPV',
+    slug: 'ie-clubber-ppv',
+    description: 'Clubber Ireland Gaelic GAA, Hurling, Camogie live feeds',
     match: (name, cat) => {
-      return /\b(canal\+\s*(sport|foot|live)|rmc\s*sports?|l'equipe)\b/i.test(name) || /\b(canal\+.*sport|rmc\s*sport)\b/i.test(cat);
+      return /clubber\s*ppv/i.test(cat) || /clubber\s*event/i.test(name);
     }
   },
   {
-    id: 123,
+    id: 145,
+    name: 'IE | Setanta Sports PPV',
+    slug: 'ie-setanta-ppv',
+    description: 'Setanta Sports Ireland live event feeds',
+    match: (name, cat) => {
+      return /setanta\s*ppv/i.test(cat) || /setanta\s*\|\s*event/i.test(name);
+    }
+  },
+  {
+    id: 146,
+    name: 'IE | Gaelic GAA & Hurling PPV',
+    slug: 'ie-gaelic-gaa-ppv',
+    description: 'GAAGO, GAAGO++, Ulster GAA & Tyrone GAA championship feeds',
+    match: (name, cat) => {
+      return /gaago|ulster\s*gaa|tyrone\s*gaa/i.test(cat) || /gaago|gaa\+\+|ulster\s*gaa|tyrone\s*gaa/i.test(name);
+    }
+  },
+  {
+    id: 147,
+    name: 'IE | NIFL Premiership PPV',
+    slug: 'ie-nifl-ppv',
+    description: 'Northern Ireland Football League (NIFL) Premiership live feeds',
+    match: (name, cat) => {
+      return /nifl\s*premiership\s*ppv/i.test(cat) || /^nifl\s*\d+\s*\|/i.test(name);
+    }
+  },
+  {
+    id: 148,
+    name: 'FR | Canal+ Sport & RMC',
+    slug: 'fr-canal-rmc-sport',
+    description: 'Canal+ Sport, Canal+ Foot, Canal+ Live, RMC Sport 1-4, L\'Equipe, FFF TV',
+    match: (name, cat) => {
+      return /\b(canal\+\s*(sport|foot|live)|rmc\s*sports?|l'equipe|fff\s*tv)\b/i.test(name) || /\b(canal\+.*sport|rmc\s*sport|fff\s*tv)\b/i.test(cat);
+    }
+  },
+  {
+    id: 149,
     name: 'FR | BeIN Sports',
     slug: 'fr-bein-sports',
     description: 'beIN Sports 1, 2, 3 France & beIN Max 4-10',
@@ -321,7 +558,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 124,
+    id: 150,
+    name: 'FI | Play+ & MTV Sports PPV',
+    slug: 'fi-play-mtv-ppv',
+    description: 'Finland Telia Play+ & MTV sports event feeds (ATP Tennis, Hockey, Cycling)',
+    match: (name, cat) => {
+      return /fi\|\s*(play\+|mtv)\s*ppv/i.test(cat) || /:(telia\s*fi|mtv\s*fi)\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 151,
     name: 'EU | Eurosport',
     slug: 'eu-eurosport',
     description: 'Eurosport 1, Eurosport 2, Eurosport 4K across European feeds',
@@ -330,16 +576,34 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 125,
-    name: 'ES | Movistar Deportes & LaLiga',
-    slug: 'es-movistar-deportes',
-    description: 'Movistar Deportes 1-4, Movistar LaLiga, Movistar Liga de Campeones, Gol Play',
+    id: 152,
+    name: 'EU | Viaplay Sports PPV',
+    slug: 'eu-viaplay-ppv',
+    description: 'Nordic & European Viaplay event feeds (Premier League, F1, Bundesliga across NO, SE, DK, FI, IS)',
     match: (name, cat) => {
-      return /\b(movistar\s*(deportes|laliga|liga\s*de\s*campeones)|gol\s*play)\b/i.test(name) || /\b(movistar\s*deportes|laliga)\b/i.test(cat);
+      return /viaplay\s*ppv|viaplay\s*hd|viaplay\s*raw/i.test(cat) || /:viaplay\s*(no|se|dk|fi|is)\s+\d+/i.test(name);
     }
   },
   {
-    id: 126,
+    id: 153,
+    name: 'EU | Max Sports PPV',
+    slug: 'eu-max-sports-ppv',
+    description: 'European Max & Eurosport event feeds (Tennis Grand Slams, Snooker, Cycling across NO, SE, DK, FR, ES)',
+    match: (name, cat) => {
+      return /(no|se|dk|fr|es)\|\s*max\s*ppv/i.test(cat) || /:max\s*(no|se|dk|fr|es)\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 154,
+    name: 'ES | Movistar Deportes & LaLiga',
+    slug: 'es-movistar-deportes',
+    description: 'Movistar Deportes 1-4, Movistar LaLiga, Movistar Liga de Campeones, Gol Play, RFEF',
+    match: (name, cat) => {
+      return /\b(movistar\s*(deportes|laliga|liga\s*de\s*campeones)|gol\s*play|rfef|1°\s*federacion)\b/i.test(name) || /\b(movistar\s*deportes|laliga|rfef)\b/i.test(cat);
+    }
+  },
+  {
+    id: 155,
     name: 'ES | DAZN',
     slug: 'es-dazn',
     description: 'DAZN 1-4, DAZN LaLiga Spain',
@@ -348,7 +612,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 127,
+    id: 156,
+    name: 'DK | Play TV2 Sports PPV',
+    slug: 'dk-play-tv2-ppv',
+    description: 'Denmark TV2 Play live sports & WTA tennis tournament feeds',
+    match: (name, cat) => {
+      return /dk\|\s*play\s*tv2\s*ppv/i.test(cat) || /:tv2play\s*dk\s+\d+/i.test(name);
+    }
+  },
+  {
+    id: 157,
     name: 'DE | Sky Sport',
     slug: 'de-sky-sport',
     description: 'German Sky Sport Bundesliga, Premier League, Top Event, F1, Tennis',
@@ -359,7 +632,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 128,
+    id: 158,
     name: 'DE | DAZN',
     slug: 'de-dazn',
     description: 'DAZN 1, DAZN 2 Germany',
@@ -368,7 +641,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 129,
+    id: 159,
+    name: 'DE | Dyn PPV & Bundesliga Replay',
+    slug: 'de-dyn-bundesliga-ppv',
+    description: 'German Dyn Sports (Handball, Basketball, Volleyball) & Bundesliga match replays',
+    match: (name, cat) => {
+      return /dyn\s*ppv|bundesliga\s*replay/i.test(cat) || /de:\s*dyn\s*ppv|de:\s*bundesliga\s*replay/i.test(name);
+    }
+  },
+  {
+    id: 160,
     name: 'CA | TSN & Sportsnet',
     slug: 'ca-tsn-sportsnet',
     description: 'TSN 1-5, Sportsnet Ontario, East, West, Pacific, SN360, SN One, SN World',
@@ -377,7 +659,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 130,
+    id: 161,
+    name: 'CA | WHL & CFL Sports PPV',
+    slug: 'ca-whl-cfl-ppv',
+    description: 'Canadian Western Hockey League (WHL / CHL) & Canadian Football League (CFL)',
+    match: (name, cat) => {
+      return /whl\s*ppv|cfl\s*ppv/i.test(cat) || /^chl\s*\d+\s*hd|^ca\s*\|\s*cfl/i.test(name);
+    }
+  },
+  {
+    id: 162,
     name: 'AU | Optus Sport & Stan Sport',
     slug: 'au-optus-stan-sport',
     description: 'Optus Sport 1-11, Stan Sport Australia',
@@ -386,7 +677,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 131,
+    id: 163,
+    name: 'AU | NRL & AFL Sports PPV',
+    slug: 'au-nrl-afl-ppv',
+    description: 'Australian National Rugby League (NRL TV) & Australian Football League (AFL TV) match feeds',
+    match: (name, cat) => {
+      return /nrl\s*tv\s*ppv|afl\s*(tv\s*)?ppv/i.test(cat) || /^nrl\s*tv|^afl\s*tv/i.test(name);
+    }
+  },
+  {
+    id: 164,
     name: 'AT | Sky Sport',
     slug: 'at-sky-sport',
     description: 'Sky Sport Austria 1 through 8',
@@ -396,7 +696,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 132,
+    id: 165,
     name: 'AR | Saudi & Arab Sports (SSC & Alkass)',
     slug: 'ar-arab-sports',
     description: 'SSC Sports 1-5 (Saudi Pro League), Alkass 1-8, Abu Dhabi Sports, Dubai Sports',
@@ -405,7 +705,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 133,
+    id: 166,
     name: 'AR | BeIN Sports (MENA / Arabic)',
     slug: 'ar-bein-sports',
     description: 'beIN Sports 1-16 Arabic & English 4K, Max, Premium',
@@ -416,7 +716,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 134,
+    id: 167,
     name: 'AR | UEFA Champions League',
     slug: 'ar-uefa-cl',
     description: 'Dedicated UEFA Champions League feeds (Al Fajer sports 1-17 HD)',
@@ -424,12 +724,21 @@ const BRAND_CATEGORIES = [
       return /uefa\s*champions\s*league/i.test(cat) || /al\s*fajer\b.*(sport|hd|\d)/i.test(name);
     }
   },
+  {
+    id: 168,
+    name: 'AR | Shahid Bundesliga PPV',
+    slug: 'ar-shahid-bundesliga-ppv',
+    description: 'Arabic Shahid Bundesliga live feeds & Fanatiz',
+    match: (name, cat) => {
+      return /shahid\s*bundesliga|fanatiz/i.test(cat) || /ar:\s*bundesliga|fz:\s*l1/i.test(name);
+    }
+  },
 
   // ==========================================
-  // --- GROUP 4: CATEGORIES WITH EMOJIS (LISTED LAST) ---
+  // --- GROUP 5: CATEGORIES WITH EMOJIS (LISTED LAST) ---
   // ==========================================
   {
-    id: 135,
+    id: 169,
     name: '🥊 Combat & Fight Sports (UFC, WWE, Boxing)',
     slug: 'combat-fight',
     description: 'UFC Fight Pass, WWE Network, BoxNation, Fight Network, PPV Boxing & MMA',
@@ -439,7 +748,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 136,
+    id: 170,
     name: '🏎️ Motorsport (F1 TV, MotoGP, NASCAR)',
     slug: 'motorsport',
     description: 'Formula 1, F1 TV, MotoGP, NASCAR, Motorvision TV',
@@ -448,7 +757,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 137,
+    id: 171,
     name: '⚽ Football Club Channels',
     slug: 'club-channels',
     description: 'MUTV, LFCTV, Chelsea TV, Real Madrid TV, Barça TV, Arsenal TV, City TV, Inter TV, Benfica TV, Sporting TV',
@@ -458,7 +767,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 138,
+    id: 172,
     name: '🎟️ Live Sports PPV & Match Feeds',
     slug: 'sports-events-ppv',
     description: 'Dedicated live match event feeds, PPVs, and temporary game links',
@@ -475,7 +784,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 139,
+    id: 173,
     name: '❓ Unidentified / Other Sports Channels',
     slug: 'unidentified-sports',
     description: 'Sports channels whose specific country or network could not be identified'

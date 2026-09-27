@@ -106,19 +106,19 @@ async function rebuild() {
   asianStreams.slice(0, 15).forEach((s, idx) => console.log('  ' + (idx + 1) + '. ' + s.name));
 
   console.log('\n--- VERIFY CLUB CHANNELS (Benfica & Sporting) ---');
-  const clubStreams = orderedStreams.filter(s => s.category_id === '137');
+  const clubStreams = orderedStreams.filter(s => s.category_id === '171');
   const ptClubs = clubStreams.filter(s => /benfica|sporting/i.test(s.name));
   console.log('Portuguese Club channels in Football Club Channels:', ptClubs.length);
   ptClubs.forEach((s, idx) => console.log('  ' + (idx + 1) + '. ' + s.name));
 
   console.log('\n--- VERIFY PT | Sport TV & Premiere (A Bola TV) ---');
-  const ptStreams = orderedStreams.filter(s => s.category_id === '117');
+  const ptStreams = orderedStreams.filter(s => s.category_id === '136');
   const aBola = ptStreams.filter(s => /bola/i.test(s.name));
   console.log('A Bola channels in PT | Sport TV:', aBola.length);
   aBola.forEach((s, idx) => console.log('  ' + (idx + 1) + '. ' + s.name));
 
   console.log('\n--- VERIFY PL | Sports (Canal+ 360, Sportklub) ---');
-  const plStreams = orderedStreams.filter(s => s.category_id === '118');
+  const plStreams = orderedStreams.filter(s => s.category_id === '137');
   console.log('Polish Sports channels in PL | Sports:', plStreams.length);
   plStreams.slice(0, 8).forEach((s, idx) => console.log('  ' + (idx + 1) + '. ' + s.name));
 
