@@ -13,10 +13,17 @@ const COUNTRY_MAP = {
 
 function detectCountry(raw, epgId = '') {
   let country = null;
-  const match = raw.match(/^([A-Z]{2,4})\s*[:|\-]\s*/i);
+  const match = raw.match(/^([A-Z]{2,4})\s*[:|\-]\s*/i) || raw.match(/^\(([A-Z]{2,4})\)\s*/i);
   if (match) {
     const code = match[1].toUpperCase();
     if (COUNTRY_MAP[code]) country = COUNTRY_MAP[code];
+  }
+  if (!country) {
+    const pipeMatch = raw.match(/\|\s*([A-Z]{2,4})\s*:\s*/i) || raw.match(/\|\s*\(([A-Z]{2,4})\)\s*/i);
+    if (pipeMatch) {
+      const code = pipeMatch[1].toUpperCase();
+      if (COUNTRY_MAP[code]) country = COUNTRY_MAP[code];
+    }
   }
   if (!country && epgId) {
     const epgMatch = epgId.trim().toLowerCase().match(/\.([a-z]{2})$/);
@@ -48,13 +55,83 @@ function detectCountry(raw, epgId = '') {
   return country;
 }
 
+// Country & Brand categories ordered:
+// 1. All US categories (at the very top)
+// 2. All UK categories (next)
+// 3. Other countries descending alphabetically: ZA, RS, PT, NZ, MY, IT, IN, FR, EU, ES, DE, CA, AU, AT, AR
+// 4. Channel categories with Emojis listed LAST
 const BRAND_CATEGORIES = [
-  // --- SKY SPORTS BROKEN DOWN BY COUNTRY ---
+  // ==========================================
+  // --- GROUP 1: UNITED STATES (US) ---
+  // ==========================================
   {
     id: 101,
-    name: '🇬🇧 UK | Sky Sports',
+    name: 'US | ESPN Networks',
+    slug: 'us-espn',
+    description: 'ESPN, ESPN2, ESPNU, ESPNews, ESPN Deportes, SEC, ACC, ESPN+',
+    match: (name, cat) => {
+      if (/radio/i.test(name)) return false;
+      return /\bespn\b|\bsec\s*network\b|\bacc\s*network\b/i.test(name) || /\bespn/i.test(cat);
+    }
+  },
+  {
+    id: 102,
+    name: 'US | Fox Sports',
+    slug: 'us-fox-sports',
+    description: 'FS1, FS2, Fox Sports 1, Fox Sports 2, Fox Sports Racing',
+    match: (name, cat) => {
+      if (/news|movies|series/i.test(name)) return false;
+      return /\bfox\s*sports?\b|\bfs[12]\b/i.test(name) || /\bfox\s*sport/i.test(cat);
+    }
+  },
+  {
+    id: 103,
+    name: 'US | Major Sports (NBC, CBS, Bally, NESN, YES)',
+    slug: 'us-major-sports',
+    description: 'NBC Sports, USA Network Premier League, CBS Sports Network, Bally Sports, FanDuel Sports, NESN, YES, Marquee, Altitude',
+    match: (name, cat) => {
+      return /\b(nbc\s*sports?|cbs\s*sports?|bally\s*sports?|nesn|yes\s*network|fanduel\s*sports?|marquee\s*sports?|altitude\s*sports?|spectrum\s*sportsnet)\b/i.test(name) ||
+             /\b(nbc\s*sport|cbs\s*sport|bally|nesn)\b/i.test(cat);
+    }
+  },
+  {
+    id: 104,
+    name: 'US | Leagues (NFL, NBA, MLB, NHL)',
+    slug: 'us-leagues',
+    description: 'NFL Network, NFL RedZone, NBA TV, MLB Network, NHL Network, Golf Channel, Tennis Channel',
+    match: (name, cat) => {
+      return /\b(nfl\s*network|nfl\s*redzone|nba\s*tv|mlb\s*network|nhl\s*network|golf\s*channel|tennis\s*channel)\b/i.test(name) ||
+             /\b(nfl|nba|mlb|nhl)\b/i.test(cat);
+    }
+  },
+  {
+    id: 105,
+    name: 'US | DAZN',
+    slug: 'us-dazn',
+    description: 'DAZN US, DAZN Women, DAZN USA',
+    match: (name, cat, country) => {
+      return /\bdazn\b/i.test(name + ' ' + cat) && (country === 'US' || /\b(us|usa)\s*:/i.test(name));
+    }
+  },
+  {
+    id: 106,
+    name: 'US | BeIN Sports',
+    slug: 'us-bein-sports',
+    description: 'beIN Sports USA & beIN Sports en Español',
+    match: (name, cat, country) => {
+      if (/movies|drama/i.test(name)) return false;
+      return (/\bbein\s*sports?\b/i.test(name) || /\bbein\s*sport/i.test(cat)) && country === 'US';
+    }
+  },
+
+  // ==========================================
+  // --- GROUP 2: UNITED KINGDOM (UK) ---
+  // ==========================================
+  {
+    id: 107,
+    name: 'UK | Sky Sports',
     slug: 'uk-sky-sports',
-    description: 'UK Sky Sports Main Event, Premier League, Football, F1, Cricket, Golf, Action, Arena',
+    description: 'UK Sky Sports Main Event, Premier League, Football, F1, Cricket, Golf, Action, Arena, Tennis, News, Mix',
     match: (name, cat, country) => {
       if (/cinema|movie|show|arts|mix\s*docs|atlantic/i.test(name)) return false;
       const isSky = /\bsky\s*sports?\b/i.test(name) || /now.*tv.*sport/i.test(cat) || (/sky.*sport/i.test(cat) && !/cinema|movie/i.test(cat));
@@ -62,19 +139,76 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 102,
-    name: '🇩🇪 DE | Sky Sport',
-    slug: 'de-sky-sport',
-    description: 'German Sky Sport Bundesliga, Premier League, Top Event, F1, Tennis',
-    match: (name, cat, country) => {
-      if (/cinema|movie/i.test(name)) return false;
-      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
-      return isSky && country === 'DE';
+    id: 108,
+    name: 'UK | TNT Sports / BT Sport',
+    slug: 'uk-tnt-sports',
+    description: 'TNT Sports 1, 2, 3, 4, Ultimate, Extra (formerly BT Sport)',
+    match: (name, cat) => {
+      return /\b(tnt\s*sports?|bt\s*sports?)\b/i.test(name) || /\btnt\s*sport/i.test(cat);
     }
   },
   {
-    id: 103,
-    name: '🇮🇹 IT | Sky Sport',
+    id: 109,
+    name: 'UK | DAZN',
+    slug: 'uk-dazn',
+    description: 'DAZN 1, DAZN 4K, DAZN PPV 1-26, DAZN UK',
+    match: (name, cat, country) => {
+      return /\bdazn\b/i.test(name + ' ' + cat) && (country === 'UK' || /\b(gb|uk)\s*:/i.test(name));
+    }
+  },
+
+  // ==========================================
+  // --- GROUP 3: OTHER COUNTRIES (DESCENDING) ---
+  // ==========================================
+  {
+    id: 110,
+    name: 'ZA | SuperSport',
+    slug: 'za-supersport',
+    description: 'SuperSport Premier League, Grandstand, Football, Variety 1-4, Action, Rugby, Cricket, PSL',
+    match: (name, cat) => {
+      return /\bsupersport\b|\bsuper\s*sport\b/i.test(name) || /\bsupersport/i.test(cat);
+    }
+  },
+  {
+    id: 111,
+    name: 'RS | Arena Sport',
+    slug: 'rs-arena-sport',
+    description: 'Arena Sport 1-10, Arena Premium 1-3 Serbia & Balkans',
+    match: (name, cat) => {
+      return /\barena\s*sports?\b|\barena\s*premium\b/i.test(name) || /\barena\s*sport/i.test(cat);
+    }
+  },
+  {
+    id: 112,
+    name: 'PT | Sport TV & Premiere',
+    slug: 'pt-sport-tv-premiere',
+    description: 'Sport TV 1-6 Portugal, SporTV 1-3 Brazil, Premiere 1-8, Combate',
+    match: (name, cat) => {
+      return /\b(sport\s*tv\s*[1-7]|sportv\s*[1-3]|premiere\s*\d+|canal\s*combate)\b/i.test(name) || /\b(sport\s*tv|premiere)\b/i.test(cat);
+    }
+  },
+  {
+    id: 113,
+    name: 'NZ | Sky Sport',
+    slug: 'nz-sky-sport',
+    description: 'New Zealand Sky Sport 1 through 9, Rugby, Premier League',
+    match: (name, cat, country) => {
+      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
+      return isSky && country === 'NZ';
+    }
+  },
+  {
+    id: 114,
+    name: 'MY | Astro SuperSport',
+    slug: 'my-astro-supersport',
+    description: 'Astro SuperSport 1-5, Astro Arena, Astro Cricket',
+    match: (name, cat) => {
+      return /\bastro\s*(supersport|arena|cricket)\b/i.test(name) || /\bastro\s*sport/i.test(cat);
+    }
+  },
+  {
+    id: 115,
+    name: 'IT | Sky Sport',
     slug: 'it-sky-sport',
     description: 'Italian Sky Sport Calcio, Uno, F1, MotoGP, Football, Tennis',
     match: (name, cat, country) => {
@@ -84,125 +218,8 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 104,
-    name: '🇦🇹 AT | Sky Sport',
-    slug: 'at-sky-sport',
-    description: 'Sky Sport Austria 1 through 8',
-    match: (name, cat, country) => {
-      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
-      return isSky && (country === 'AT' || /austria/i.test(name));
-    }
-  },
-  {
-    id: 105,
-    name: '🇳🇿 NZ | Sky Sport',
-    slug: 'nz-sky-sport',
-    description: 'New Zealand Sky Sport 1 through 9, Rugby, Premier League',
-    match: (name, cat, country) => {
-      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
-      return isSky && country === 'NZ';
-    }
-  },
-
-  // --- TNT SPORTS (UK) ---
-  {
-    id: 106,
-    name: '🇬🇧 UK | TNT Sports / BT Sport',
-    slug: 'uk-tnt-sports',
-    description: 'TNT Sports 1, 2, 3, 4, Ultimate, Extra (formerly BT Sport)',
-    match: (name, cat) => {
-      return /\b(tnt\s*sports?|bt\s*sports?)\b/i.test(name) || /\btnt\s*sport/i.test(cat);
-    }
-  },
-
-  // --- US SPORTS ---
-  {
-    id: 107,
-    name: '🇺🇸 US | ESPN Networks',
-    slug: 'us-espn',
-    description: 'ESPN, ESPN2, ESPNU, ESPNews, ESPN Deportes, SEC, ACC, ESPN+',
-    match: (name, cat) => {
-      if (/radio/i.test(name)) return false;
-      return /\bespn\b|\bsec\s*network\b|\bacc\s*network\b/i.test(name) || /\bespn/i.test(cat);
-    }
-  },
-  {
-    id: 108,
-    name: '🇺🇸 US | Fox Sports',
-    slug: 'us-fox-sports',
-    description: 'FS1, FS2, Fox Sports 1, Fox Sports 2, Fox Sports Racing',
-    match: (name, cat) => {
-      if (/news|movies|series/i.test(name)) return false;
-      return /\bfox\s*sports?\b|\bfs[12]\b/i.test(name) || /\bfox\s*sport/i.test(cat);
-    }
-  },
-  {
-    id: 109,
-    name: '🇺🇸 US | Major Sports (NBC, CBS, Bally, NESN, YES)',
-    slug: 'us-major-sports',
-    description: 'NBC Sports, USA Network Premier League, CBS Sports Network, Bally Sports, FanDuel Sports, NESN, YES, Marquee, Altitude',
-    match: (name, cat) => {
-      return /\b(nbc\s*sports?|cbs\s*sports?|bally\s*sports?|nesn|yes\s*network|fanduel\s*sports?|marquee\s*sports?|altitude\s*sports?|spectrum\s*sportsnet)\b/i.test(name) ||
-             /\b(nbc\s*sport|cbs\s*sport|bally|nesn)\b/i.test(cat);
-    }
-  },
-  {
-    id: 110,
-    name: '🇺🇸 US | Leagues (NFL, NBA, MLB, NHL)',
-    slug: 'us-leagues',
-    description: 'NFL Network, NFL RedZone, NBA TV, MLB Network, NHL Network, Golf Channel, Tennis Channel',
-    match: (name, cat) => {
-      return /\b(nfl\s*network|nfl\s*redzone|nba\s*tv|mlb\s*network|nhl\s*network|golf\s*channel|tennis\s*channel)\b/i.test(name) ||
-             /\b(nfl|nba|mlb|nhl)\b/i.test(cat);
-    }
-  },
-
-  // --- CANADIAN SPORTS ---
-  {
-    id: 111,
-    name: '🇨🇦 CA | TSN & Sportsnet',
-    slug: 'ca-tsn-sportsnet',
-    description: 'TSN 1-5, Sportsnet Ontario, East, West, Pacific, SN360, SN One, SN World',
-    match: (name, cat) => {
-      return /\b(tsn\s*[1-5]|sportsnet|sn\s*(now|360|1|east|west|ontario|pacific|world))\b/i.test(name) || /\b(tsn|sportsnet)\b/i.test(cat);
-    }
-  },
-
-  // --- AUSTRALIA & NEW ZEALAND ---
-  {
-    id: 112,
-    name: '🇦🇺 AU | Optus Sport & Stan Sport',
-    slug: 'au-optus-stan-sport',
-    description: 'Optus Sport 1-11, Stan Sport Australia',
-    match: (name, cat) => {
-      return /\b(optus\s*(sport|\d+)|stan\s*sport)\b/i.test(name) || /\boptus\b/i.test(cat);
-    }
-  },
-
-  // --- SOUTH AFRICA ---
-  {
-    id: 113,
-    name: '🇿🇦 ZA | SuperSport',
-    slug: 'za-supersport',
-    description: 'SuperSport Premier League, Grandstand, Football, Variety 1-4, Action, Rugby, Cricket, PSL',
-    match: (name, cat) => {
-      return /\bsupersport\b|\bsuper\s*sport\b/i.test(name) || /\bsupersport/i.test(cat);
-    }
-  },
-
-  // --- DAZN BY REGION ---
-  {
-    id: 114,
-    name: '🇩🇪 DE | DAZN',
-    slug: 'de-dazn',
-    description: 'DAZN 1, DAZN 2 Germany',
-    match: (name, cat, country) => {
-      return /\bdazn\b/i.test(name + ' ' + cat) && country === 'DE';
-    }
-  },
-  {
-    id: 115,
-    name: '🇮🇹 IT | DAZN',
+    id: 116,
+    name: 'IT | DAZN',
     slug: 'it-dazn',
     description: 'DAZN 1, DAZN 2, DAZN Zona Italy',
     match: (name, cat, country) => {
@@ -210,47 +227,27 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 116,
-    name: '🇪🇸 ES | DAZN',
-    slug: 'es-dazn',
-    description: 'DAZN 1-4, DAZN LaLiga Spain',
-    match: (name, cat, country) => {
-      return /\bdazn\b/i.test(name + ' ' + cat) && country === 'ES';
-    }
-  },
-  {
     id: 117,
-    name: '🇬🇧 UK & US | DAZN',
-    slug: 'uk-us-dazn',
-    description: 'DAZN UK, DAZN US, DAZN Boxing',
-    match: (name, cat, country) => {
-      return /\bdazn\b/i.test(name + ' ' + cat) && (country === 'UK' || country === 'US');
+    name: 'IN | Cricket (Star, Sony Ten, Willow, PTV)',
+    slug: 'in-cricket',
+    description: 'Willow TV, Star Sports 1/2/Select, Sony Sports Ten 1-5, PTV Sports, Geo Super, T Sports, A Sports',
+    match: (name, cat) => {
+      return /\b(willow\s*(tv|hd|xtra|\d+)|star\s*sports?|sony\s*(sports|ten|six)|ptv\s*sports?|geo\s*super|t\s*sports|a\s*sports)\b/i.test(name) ||
+             /\b(willow|star\s*sport|sony\s*ten|cricket)\b/i.test(cat);
     }
   },
   {
     id: 118,
-    name: '🌍 Global | DAZN',
-    slug: 'global-dazn',
-    description: 'DAZN international feeds and channels',
+    name: 'FR | Canal+ Sport & RMC',
+    slug: 'fr-canal-rmc-sport',
+    description: 'Canal+ Sport, Canal+ Foot, Canal+ Live, RMC Sport 1-4, L\'Equipe',
     match: (name, cat) => {
-      return /\bdazn\b/i.test(name) || /\bdazn\b/i.test(cat);
+      return /\b(canal\+\s*(sport|foot|live)|rmc\s*sports?|l'equipe)\b/i.test(name) || /\b(canal\+.*sport|rmc\s*sport)\b/i.test(cat);
     }
   },
-
-  // --- BEIN SPORTS BY REGION ---
   {
     id: 119,
-    name: '🇶🇦 AR | BeIN Sports (MENA / Arabic)',
-    slug: 'ar-bein-sports',
-    description: 'beIN Sports 1-16 Arabic, AFC, Max, Premium, 4K',
-    match: (name, cat, country) => {
-      if (/movies|drama|series/i.test(name)) return false;
-      return (/\bbein\s*sports?\b/i.test(name) || /\bbein\s*sport/i.test(cat)) && (country === 'AR' || country === 'SA' || /arabic|mena/i.test(cat + ' ' + name));
-    }
-  },
-  {
-    id: 120,
-    name: '🇫🇷 FR | BeIN Sports',
+    name: 'FR | BeIN Sports',
     slug: 'fr-bein-sports',
     description: 'beIN Sports 1, 2, 3 France & beIN Max 4-10',
     match: (name, cat, country) => {
@@ -259,51 +256,8 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 121,
-    name: '🇺🇸 US | BeIN Sports',
-    slug: 'us-bein-sports',
-    description: 'beIN Sports USA & beIN Sports en Español',
-    match: (name, cat, country) => {
-      if (/movies|drama/i.test(name)) return false;
-      return (/\bbein\s*sports?\b/i.test(name) || /\bbein\s*sport/i.test(cat)) && country === 'US';
-    }
-  },
-  {
-    id: 122,
-    name: '🌍 Global | BeIN Sports',
-    slug: 'global-bein-sports',
-    description: 'beIN Sports English, Asia, Singapore, Australia',
-    match: (name, cat) => {
-      if (/movies|drama|series/i.test(name)) return false;
-      return /\bbein\s*sports?\b/i.test(name) || /\bbein\s*sport/i.test(cat);
-    }
-  },
-
-  // --- ASIAN & CRICKET SPORTS ---
-  {
-    id: 123,
-    name: '🇲🇾 MY | Astro SuperSport',
-    slug: 'my-astro-supersport',
-    description: 'Astro SuperSport 1-5, Astro Arena, Astro Cricket',
-    match: (name, cat) => {
-      return /\bastro\s*(supersport|arena|cricket)\b/i.test(name) || /\bastro\s*sport/i.test(cat);
-    }
-  },
-  {
-    id: 124,
-    name: '🏏 South Asia | Cricket (Willow, Star, Sony Ten, PTV)',
-    slug: 'cricket-south-asian',
-    description: 'Willow TV, Willow Xtra, Star Sports 1/2/Select, Sony Sports Ten 1-5, PTV Sports, Geo Super, T Sports, A Sports',
-    match: (name, cat) => {
-      return /\b(willow\s*(tv|hd|xtra|\d+)|star\s*sports?|sony\s*(sports|ten|six)|ptv\s*sports?|geo\s*super|t\s*sports|a\s*sports)\b/i.test(name) ||
-             /\b(willow|star\s*sport|sony\s*ten|cricket)\b/i.test(cat);
-    }
-  },
-
-  // --- EUROPEAN LEAGUES & CHANNELS ---
-  {
-    id: 125,
-    name: '🇪🇺 EU | Eurosport',
+    id: 120,
+    name: 'EU | Eurosport',
     slug: 'eu-eurosport',
     description: 'Eurosport 1, Eurosport 2, Eurosport 4K across European feeds',
     match: (name, cat) => {
@@ -311,17 +265,8 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 126,
-    name: '🇷🇸 RS | Arena Sport',
-    slug: 'rs-arena-sport',
-    description: 'Arena Sport 1-10, Arena Premium 1-3 Serbia & Balkans',
-    match: (name, cat) => {
-      return /\barena\s*sports?\b|\barena\s*premium\b/i.test(name) || /\barena\s*sport/i.test(cat);
-    }
-  },
-  {
-    id: 127,
-    name: '🇪🇸 ES | Movistar Deportes & LaLiga',
+    id: 121,
+    name: 'ES | Movistar Deportes & LaLiga',
     slug: 'es-movistar-deportes',
     description: 'Movistar Deportes 1-4, Movistar LaLiga, Movistar Liga de Campeones, Gol Play',
     match: (name, cat) => {
@@ -329,36 +274,88 @@ const BRAND_CATEGORIES = [
     }
   },
   {
+    id: 122,
+    name: 'ES | DAZN',
+    slug: 'es-dazn',
+    description: 'DAZN 1-4, DAZN LaLiga Spain',
+    match: (name, cat, country) => {
+      return /\bdazn\b/i.test(name + ' ' + cat) && country === 'ES';
+    }
+  },
+  {
+    id: 123,
+    name: 'DE | Sky Sport',
+    slug: 'de-sky-sport',
+    description: 'German Sky Sport Bundesliga, Premier League, Top Event, F1, Tennis',
+    match: (name, cat, country) => {
+      if (/cinema|movie/i.test(name)) return false;
+      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
+      return isSky && country === 'DE';
+    }
+  },
+  {
+    id: 124,
+    name: 'DE | DAZN',
+    slug: 'de-dazn',
+    description: 'DAZN 1, DAZN 2 Germany',
+    match: (name, cat, country) => {
+      return /\bdazn\b/i.test(name + ' ' + cat) && country === 'DE';
+    }
+  },
+  {
+    id: 125,
+    name: 'CA | TSN & Sportsnet',
+    slug: 'ca-tsn-sportsnet',
+    description: 'TSN 1-5, Sportsnet Ontario, East, West, Pacific, SN360, SN One, SN World',
+    match: (name, cat) => {
+      return /\b(tsn\s*[1-5]|sportsnet|sn\s*(now|360|1|east|west|ontario|pacific|world))\b/i.test(name) || /\b(tsn|sportsnet)\b/i.test(cat);
+    }
+  },
+  {
+    id: 126,
+    name: 'AU | Optus Sport & Stan Sport',
+    slug: 'au-optus-stan-sport',
+    description: 'Optus Sport 1-11, Stan Sport Australia',
+    match: (name, cat) => {
+      return /\b(optus\s*(sport|\d+)|stan\s*sport)\b/i.test(name) || /\boptus\b/i.test(cat);
+    }
+  },
+  {
+    id: 127,
+    name: 'AT | Sky Sport',
+    slug: 'at-sky-sport',
+    description: 'Sky Sport Austria 1 through 8',
+    match: (name, cat, country) => {
+      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
+      return isSky && (country === 'AT' || /austria/i.test(name));
+    }
+  },
+  {
     id: 128,
-    name: '🇫🇷 FR | Canal+ Sport & RMC',
-    slug: 'fr-canal-rmc-sport',
-    description: 'Canal+ Sport, Canal+ Foot, Canal+ Live, RMC Sport 1-4, L\'Equipe',
-    match: (name, cat) => {
-      return /\b(canal\+\s*(sport|foot|live)|rmc\s*sports?|l'equipe)\b/i.test(name) || /\b(canal\+.*sport|rmc\s*sport)\b/i.test(cat);
-    }
-  },
-  {
-    id: 129,
-    name: '🇵🇹 PT | Sport TV & Premiere',
-    slug: 'pt-sport-tv-premiere',
-    description: 'Sport TV 1-6 Portugal, SporTV 1-3 Brazil, Premiere 1-8, Combate',
-    match: (name, cat) => {
-      return /\b(sport\s*tv\s*[1-7]|sportv\s*[1-3]|premiere\s*\d+|canal\s*combate)\b/i.test(name) || /\b(sport\s*tv|premiere)\b/i.test(cat);
-    }
-  },
-  {
-    id: 130,
-    name: '🇦🇪 AR | Saudi & Arab Sports (SSC & Alkass)',
+    name: 'AR | Saudi & Arab Sports (SSC & Alkass)',
     slug: 'ar-arab-sports',
     description: 'SSC Sports 1-5 (Saudi Pro League), Alkass 1-8, Abu Dhabi Sports, Dubai Sports',
     match: (name, cat) => {
       return /\b(ssc\s*(sports?|\d+)|alkass\s*\d+|abu\s*dhabi\s*sports?|dubai\s*sports?)\b/i.test(name) || /\b(ssc|alkass|abu\s*dhabi\s*sport)\b/i.test(cat);
     }
   },
-
-  // --- SPECIALTY SPORTS & EVENTS ---
   {
-    id: 131,
+    id: 129,
+    name: 'AR | BeIN Sports (MENA / Arabic)',
+    slug: 'ar-bein-sports',
+    description: 'beIN Sports 1-16 Arabic & English 4K, Max, Premium',
+    match: (name, cat, country) => {
+      if (/movies|drama|series/i.test(name)) return false;
+      return (/\bbein\s*sports?\b/i.test(name) || /\bbein\s*sport/i.test(cat)) && 
+             (country === 'AR' || country === 'SA' || /arabic|mena|qatar/i.test(cat + ' ' + name) || /english\s*4k|beIN\s*Sp.*rts\s*\d/i.test(name));
+    }
+  },
+
+  // ==========================================
+  // --- GROUP 4: CATEGORIES WITH EMOJIS (LISTED LAST) ---
+  // ==========================================
+  {
+    id: 130,
     name: '🥊 Combat & Fight Sports (UFC, WWE, Boxing)',
     slug: 'combat-fight',
     description: 'UFC Fight Pass, WWE Network, BoxNation, Fight Network, PPV Boxing & MMA',
@@ -368,7 +365,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 132,
+    id: 131,
     name: '🏎️ Motorsport (F1 TV, MotoGP, NASCAR)',
     slug: 'motorsport',
     description: 'Formula 1, F1 TV, MotoGP, NASCAR, Motorvision TV',
@@ -377,7 +374,7 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 133,
+    id: 132,
     name: '⚽ Football Club Channels',
     slug: 'club-channels',
     description: 'MUTV, LFCTV, Chelsea TV, Real Madrid TV, Barça TV, Arsenal TV, City TV, Inter TV',
@@ -387,24 +384,26 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 134,
+    id: 133,
     name: '🎟️ Live Sports PPV & Match Feeds',
     slug: 'sports-events-ppv',
     description: 'Dedicated live match event feeds, PPVs, and temporary game links',
     match: (name, cat) => {
       if (/cinema|adult|xxx|erotic/i.test(name) || /cinema|adult|xxx/i.test(cat)) return false;
-      const isDateEvent = /\|\s*\d{2}-\d{2}-\d{4}/i.test(name) || /\|\s*\d{2}:\d{2}\s*(gmt|cet|cest|est|utc)/i.test(name);
+      const isDateEvent = /\|\s*\d{2,4}[-/]\d{2}[-/]\d{2,4}/i.test(name) ||
+                          /\|\s*\d{2}:\d{2}\s*(gmt|cet|cest|est|utc)/i.test(name) ||
+                          /\(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\)/.test(name) ||
+                          /^(end\b|ended\b|live\b|next\b)/i.test(name.trim());
       const isPPV = /\b(ppv|event|match|live\s*football)\b/i.test(name) || /\b(ppv|event|match)\b/i.test(cat);
       return isDateEvent || (isPPV && /sport|football|soccer|league/i.test(name + ' ' + cat));
     }
   },
   {
-    id: 135,
+    id: 134,
     name: '❓ Unidentified / Other Sports Channels',
     slug: 'unidentified-sports',
     description: 'Sports channels whose specific country or network could not be identified'
   }
-
 ];
 
 function cleanChannelName(rawName) {
@@ -420,7 +419,8 @@ function formatCountryChannel(name, epgId = '') {
   const country = detectCountry(raw, epgId);
   raw = raw.replace(/^(4k|vip|now|raw|fhd|hd|sd|hevc|skygo|wow)\s*[:|\-]\s*/i, '').trim();
   raw = raw.replace(/^([A-Z]{2,4})\s*[:|\-]\s*/i, '').trim();
-  const prefix = country && country !== 'INT' ? `${country}: ` : '❓: ';
+  raw = raw.replace(/^\(([A-Z]{2,4})\)\s*/i, '').trim();
+  const prefix = country && country !== 'INT' && country !== 'PPV' ? `${country}: ` : '❓: ';
   return `${prefix}${raw}`;
 }
 
@@ -429,7 +429,11 @@ function classifyStream(stream, catName = '') {
   if (/^#+.*#+$/.test(name.trim())) return null;
 
   // Check temporary match events first
-  const isMatchEvent = /^(end\b|ended\b)/i.test(name.trim()) || /\|\s*\d{2}-\d{2}-\d{4}/i.test(name) || /\|\s*\d{2}:\d{2}\s*(gmt|cet|cest|est|utc)/i.test(name);
+  const isMatchEvent = /^(end\b|ended\b|live\b|next\b)/i.test(name.trim()) ||
+    /\|\s*\d{2,4}[-/]\d{2}[-/]\d{2,4}/i.test(name) ||
+    /\|\s*\d{2}:\d{2}\s*(gmt|cet|cest|est|utc)/i.test(name) ||
+    /\(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\)/.test(name);
+
   const ppvCat = BRAND_CATEGORIES.find(c => c.slug === 'sports-events-ppv');
   if (isMatchEvent && ppvCat && ppvCat.match(name, catName)) {
     return ppvCat;
@@ -457,7 +461,6 @@ function classifyStream(stream, catName = '') {
   return null;
 }
 
-
 function getFallbackEpg(name) {
   if (!name) return '';
   if (/sky.*sport.*f1/i.test(name)) return 'skysportsf1.uk';
@@ -477,8 +480,38 @@ function getFallbackEpg(name) {
   if (/tnt.*sport.*4/i.test(name)) return 'tntsports4.uk';
   if (/optus/i.test(name)) return 'optussport1.au';
   if (/willow/i.test(name)) return 'willow.us';
-  if (/dazn.*1/i.test(name)) return 'dazn1.uk';
+  if (/\bdazn\s*1\b/i.test(name)) return 'dazn1.uk';
   return '';
+}
+
+// Country code weight for descending alphabetical sort:
+// US is highest (top), UK is second, then other countries descending alphabetically (ZA, RS, PT, NZ, etc.)
+// Emojis / Unidentified (❓) are lowest (bottom)
+function getCountryWeight(code) {
+  if (!code || code === '❓' || code === 'INT' || code === 'OTHER' || code === 'PPV') return -999999;
+  if (code === 'US') return 100000;
+  if (code === 'UK' || code === 'GB') return 90000;
+  return ((code.charCodeAt(0) || 0) * 100) + (code.charCodeAt(1) || 0);
+}
+
+// Compare function for channels
+function compareSportsChannels(a, b) {
+  const matchA = (a.name || '').match(/^([A-Z]{2,4}|❓):\s*(.*)$/);
+  const matchB = (b.name || '').match(/^([A-Z]{2,4}|❓):\s*(.*)$/);
+  const codeA = matchA ? matchA[1].toUpperCase() : '❓';
+  const codeB = matchB ? matchB[1].toUpperCase() : '❓';
+  const restA = matchA ? matchA[2] : (a.clean_name || a.name || '');
+  const restB = matchB ? matchB[2] : (b.clean_name || b.name || '');
+
+  const weightA = getCountryWeight(codeA);
+  const weightB = getCountryWeight(codeB);
+
+  if (weightA !== weightB) {
+    return weightB - weightA; // higher weight (US, UK, ZA...) first
+  }
+
+  // Same country: sort channel name naturally A-Z
+  return restA.localeCompare(restB, undefined, { sensitivity: 'base', numeric: true });
 }
 
 module.exports = {
@@ -487,5 +520,7 @@ module.exports = {
   cleanChannelName,
   formatCountryChannel,
   getFallbackEpg,
-  detectCountry
+  detectCountry,
+  getCountryWeight,
+  compareSportsChannels
 };

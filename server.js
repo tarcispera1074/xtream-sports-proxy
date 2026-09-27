@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const zlib = require('zlib');
-const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel } = require('./classifier');
+const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel, compareSportsChannels } = require('./classifier');
 const { syncSportsEpg } = require('./epg-sync');
 
 
@@ -156,8 +156,8 @@ async function syncChannels(force = false) {
       }
     }
 
-    // Sort all streams in alphabetical order by "Country: Channel"
-    matched.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+    // Sort all streams in descending country order (US top, UK next, etc., emojis last)
+    matched.sort(compareSportsChannels);
     matched.forEach((s, idx) => { s.num = idx + 1; });
 
     // Prepare active categories list (only categories that have channels)
@@ -216,9 +216,9 @@ function loadDiskCache() {
           sportsEpgIds.add(s.epg_channel_id.trim().toLowerCase());
         }
       });
-      sportsStreams.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+      sportsStreams.sort(compareSportsChannels);
       sportsStreams.forEach((s, idx) => { s.num = idx + 1; });
-      console.log(`[Cache] Loaded ${sportsStreams.length} cached sports channels from disk (sorted alphabetically by Country: Channel).`);
+      console.log(`[Cache] Loaded ${sportsStreams.length} cached sports channels from disk (sorted by Country: US top, UK next, emojis last).`);
       return true;
 
     } catch (e) {
