@@ -329,11 +329,37 @@ function classifyStream(stream, catName = '') {
   return null;
 }
 
+// Helper to supply fallback EPG IDs for channels with blank epg_channel_id
+function getFallbackEpg(name) {
+  if (!name) return '';
+  if (/sky.*sport.*f1/i.test(name)) return 'skysportsf1.uk';
+  if (/sky.*sport.*main.*event/i.test(name)) return 'skysportsmainevent.uk';
+  if (/sky.*sport.*premier/i.test(name)) return 'skysportspremiereleague.uk';
+  if (/sky.*sport.*football/i.test(name)) return 'skysportsfootball.uk';
+  if (/sky.*sport.*cricket/i.test(name)) return 'skysportscricket.uk';
+  if (/sky.*sport.*golf/i.test(name)) return 'skysportsgolf.uk';
+  if (/sky.*sport.*action/i.test(name)) return 'skysportsaction.uk';
+  if (/sky.*sport.*arena/i.test(name)) return 'skysportsarena.uk';
+  if (/sky.*sport.*tennis/i.test(name)) return 'skysportstennis.uk';
+  if (/sky.*sport.*news/i.test(name)) return 'skysportsnews.uk';
+  if (/sky.*sport.*mix/i.test(name)) return 'skysportsmix.uk';
+  if (/tnt.*sport.*1/i.test(name)) return 'tntsports1.uk';
+  if (/tnt.*sport.*2/i.test(name)) return 'tntsports2.uk';
+  if (/tnt.*sport.*3/i.test(name)) return 'tntsports3.uk';
+  if (/tnt.*sport.*4/i.test(name)) return 'tntsports4.uk';
+  if (/optus/i.test(name)) return 'optussport1.au';
+  if (/willow/i.test(name)) return 'willow.us';
+  if (/dazn.*1/i.test(name)) return 'dazn1.uk';
+  return '';
+}
+
 module.exports = {
   BRAND_CATEGORIES,
   classifyStream,
   cleanChannelName,
-  formatCountryChannel
+  formatCountryChannel,
+  getFallbackEpg
 };
+
 
 

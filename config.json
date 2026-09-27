@@ -8,7 +8,7 @@
     "port": 5055,
     "username": "sports",
     "password": "sports",
-    "streamMode": "redirect",
+    "streamMode": "proxy",
     "syncIntervalHours": 12,
     "includePPVCategory": true
   }
