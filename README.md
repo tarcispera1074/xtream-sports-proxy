@@ -35,29 +35,37 @@ You can enter these credentials into **any IPTV player** (TiviMate, IPTV Smarter
 
 ## 🏆 Categorization & Channel Groups (Sorted by Country & Descending Order)
 
-Instead of 900+ mixed country folders and 57,000+ cluttered channels, your IPTV is now classified into clean, country-specific sports groups in **descending alphabetical order** (with US at the top, then UK), with emoji categories listed last:
+Instead of 900+ mixed country folders and 57,000+ cluttered channels, your IPTV is now classified into clean, country-specific sports groups in **descending alphabetical order** (with Asian Sports and US at the top), with emoji categories listed last:
 
-### 🇺🇸 United States (US - Top)
+### 🌏 Asian Sports (AS - Top)
+- **AS | Asian Sports** (Astro SuperSport, Star Sports, Sony Ten, Sony Six, Sports 18, HK Now Sports, StarHub Hub Sports, PTV Sports, A-Sports, Willow, DD Sports)
+
+### 🇺🇸 United States (US - Next)
 - **US | ESPN Networks** (ESPN, ESPN2, ESPNU, ESPNews, ESPN Deportes, SEC, ACC, ESPN+)
 - **US | Fox Sports** (FS1, FS2, Fox Sports 1, Fox Sports 2, Fox Sports Racing)
 - **US | Major Sports** (NBC Sports, USA Network, CBS Sports Network, Bally Sports, FanDuel Sports, NESN, YES, Marquee, Altitude)
 - **US | Leagues** (NFL Network, NFL RedZone, NBA TV, MLB Network, NHL Network, Golf Channel, Tennis Channel)
 - **US | DAZN** (DAZN US, DAZN Women, DAZN USA)
 - **US | BeIN Sports** (beIN Sports USA & beIN Sports en Español)
+- **US | FloSports PPV** (FloSports, FloRacing, Short Track Super Series)
 
-### 🇬🇧 United Kingdom (UK - Next)
+### 🇬🇧 United Kingdom (UK)
 - **UK | Sky Sports** (Main Event, Premier League, Football, F1, Cricket, Golf, Action, Arena, Tennis, News, Mix)
 - **UK | TNT Sports / BT Sport** (TNT Sports 1, 2, 3, 4, Ultimate, Extra)
 - **UK | DAZN** (DAZN 1, DAZN 4K, DAZN PPV 1-26, DAZN UK)
+- **UK | EPL Premier League PPV** (Premier League club feeds: Man Utd, City, Liverpool, Arsenal, Chelsea, Spurs & EPL VIP feeds)
+- **UK | National League PPV** (UK National League live match feeds)
+- **UK | League One & Two PPV** (EFL League One & Two team match feeds: Wycombe, Wigan, Walsall, Swindon, etc.)
+- **UK | Premier League+ & Super League PPV** (Premier League+ and Betfred Rugby Super League feeds)
 
 ### 🇿🇦 - 🇦🇪 Other Countries (Descending Alphabetical Order)
 - **ZA | SuperSport** (SuperSport Premier League, Grandstand, Football, Variety 1-4, Action, Rugby, Cricket, PSL)
 - **RS | Arena Sport** (Arena Sport 1-10, Arena Premium 1-3 Serbia & Balkans)
-- **PT | Sport TV & Premiere** (Sport TV 1-6 Portugal, SporTV 1-3 Brazil, Premiere 1-8, Combate)
+- **PT | Sport TV & Premiere** (Sport TV 1-6 Portugal, SporTV 1-3 Brazil, Premiere 1-8, A Bola TV, Combate)
+- **PL | Sports (Canal+, Sportklub)** (Canal+ Sport 1-5 Poland, Canal+ 360, Canal+ Now, Sportklub, TVP Sport)
 - **NZ | Sky Sport** (New Zealand Sky Sport 1 through 9, Rugby, Premier League)
 - **IT | Sky Sport** (Italian Sky Sport Calcio, Uno, F1, MotoGP, Football, Tennis)
 - **IT | DAZN** (DAZN 1, DAZN 2, DAZN Zona Italy)
-- **IN | Cricket** (Willow TV, Star Sports, Sony Sports Ten 1-5, PTV Sports, Geo Super)
 - **FR | Canal+ Sport & RMC** (Canal+ Sport, Canal+ Foot, Canal+ Live, RMC Sport 1-4, L'Equipe)
 - **FR | BeIN Sports** (beIN Sports 1, 2, 3 France & beIN Max 4-10)
 - **EU | Eurosport** (Eurosport 1, Eurosport 2, Eurosport 4K across European feeds)
@@ -70,11 +78,12 @@ Instead of 900+ mixed country folders and 57,000+ cluttered channels, your IPTV 
 - **AT | Sky Sport** (Sky Sport Austria 1 through 8)
 - **AR | Saudi & Arab Sports** (SSC Sports 1-5, Alkass 1-8, Abu Dhabi Sports, Dubai Sports)
 - **AR | BeIN Sports (MENA / Arabic)** (beIN Sports 1-16 Arabic & English 4K, Max, Premium)
+- **AR | UEFA Champions League** (Dedicated UEFA Champions League Al Fajer feeds 1-17 HD)
 
 ### ✨ Specialty & Event Categories (Listed Last)
 - **🥊 Combat & Fight Sports (UFC, WWE, Boxing)** (UFC Fight Pass, WWE Network, BoxNation, Fight Network, PPV Boxing & MMA)
 - **🏎️ Motorsport (F1 TV, MotoGP, NASCAR)** (Formula 1, F1 TV, MotoGP, NASCAR, Motorvision TV)
-- **⚽ Football Club Channels** (MUTV, LFCTV, Chelsea TV, Real Madrid TV, Barça TV, Arsenal TV, City TV, Inter TV)
+- **⚽ Football Club Channels** (MUTV, LFCTV, Chelsea TV, Real Madrid TV, Barça TV, Arsenal TV, City TV, Inter TV, Benfica TV, Sporting TV)
 - **🎟️ Live Sports PPV & Match Feeds** (Dedicated live match event feeds, PPVs, and temporary game links)
 - **❓ Unidentified / Other Sports Channels** (Sports channels whose specific country or network could not be identified)
 
