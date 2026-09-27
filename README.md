@@ -1,6 +1,9 @@
 # ⚡ Xtream Sports Proxy & Curated IPTV Hub
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Yousha1011/xtream-sports-proxy)
+
 A lightweight, high-performance Xtream Codes proxy and playlist optimizer that filters tens of thousands of channels down to **only sports channels**, neatly organized and grouped by **Channel Name & Network** (Sky Sports, TNT Sports, ESPN, BeIN, DAZN, SuperSport, etc.), with synchronized **EPG XMLTV** schedules.
+
 
 ---
 
