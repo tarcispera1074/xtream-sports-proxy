@@ -1,11 +1,11 @@
 const fs = require('fs');
-const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel, compareSportsChannels } = require('./classifier');
+const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel, compareAscendingChannels } = require('./classifier');
 
 const raw = JSON.parse(fs.readFileSync('./channels_cache.json', 'utf8'));
 console.log('Original stream count:', raw.streams.length);
 
 const groupCountMap = {};
-const updatedStreams = [];
+const matchedStreams = [];
 
 for (const s of raw.streams) {
   const origName = s.original_name || s.name;
@@ -14,7 +14,8 @@ for (const s of raw.streams) {
     epgId = '';
   }
   const dummyStream = { name: origName, epg_channel_id: epgId };
-  const matchedCat = classifyStream(dummyStream, s.group_name || '');
+  let matchedCat = classifyStream(dummyStream, '');
+  if (!matchedCat) matchedCat = BRAND_CATEGORIES.find(c => c.slug === 'unidentified-sports');
   if (matchedCat) {
     const countryName = formatCountryChannel(origName, epgId);
     const cleanName = cleanChannelName(origName);
@@ -29,13 +30,28 @@ for (const s of raw.streams) {
       group_name: matchedCat.name,
       group_slug: matchedCat.slug
     };
-    updatedStreams.push(mapped);
+    matchedStreams.push(mapped);
     groupCountMap[matchedCat.id] = (groupCountMap[matchedCat.id] || 0) + 1;
   }
 }
 
-updatedStreams.sort(compareSportsChannels);
-updatedStreams.forEach((s, idx) => { s.num = idx + 1; });
+// Group streams by category, sorting each category's channels in ascending alphabetical order
+const orderedStreams = [];
+for (const cat of BRAND_CATEGORIES) {
+  const catStreams = matchedStreams.filter(s => s.category_id === String(cat.id));
+  if (catStreams.length > 0) {
+    catStreams.sort(compareAscendingChannels);
+    orderedStreams.push(...catStreams);
+  }
+}
+
+const processedIds = new Set(orderedStreams.map(s => s.stream_id));
+const leftovers = matchedStreams.filter(s => !processedIds.has(s.stream_id));
+if (leftovers.length > 0) {
+  leftovers.sort(compareAscendingChannels);
+  orderedStreams.push(...leftovers);
+}
+orderedStreams.forEach((s, idx) => { s.num = idx + 1; });
 
 const activeCats = BRAND_CATEGORIES
   .filter(cat => groupCountMap[cat.id] > 0)
@@ -51,22 +67,21 @@ const activeCats = BRAND_CATEGORIES
 console.log('\n--- ACTIVE CATEGORIES IN ORDER ---');
 activeCats.forEach((c, i) => console.log((i + 1) + '. [' + c.category_id + '] ' + c.category_name + ' (Count: ' + c.count + ')'));
 
-console.log('\n--- SAMPLE STREAMS (FIRST 10) ---');
-updatedStreams.slice(0, 10).forEach(s => console.log(s.num, s.name));
-
-console.log('\n--- SAMPLE STREAMS (TRANSITION TO UK) ---');
-const firstUkIdx = updatedStreams.findIndex(s => s.name.startsWith('UK:'));
-console.log('First UK at index:', firstUkIdx);
-updatedStreams.slice(firstUkIdx - 2, firstUkIdx + 5).forEach(s => console.log(s.num, s.name));
-
-console.log('\n--- SAMPLE STREAMS (LAST 10) ---');
-updatedStreams.slice(-10).forEach(s => console.log(s.num, s.name));
+console.log('\n--- VERIFY ASCENDING SORT INSIDE CATEGORIES ---');
+const testCats = ['101', '107', '108', '110', '120', '130', '131'];
+for (const cid of testCats) {
+  const c = activeCats.find(x => x.category_id === cid);
+  if (!c) continue;
+  console.log('\nCategory: ' + c.category_name + ' (First 5 channels):');
+  const catStreams = orderedStreams.filter(s => s.category_id === cid);
+  catStreams.slice(0, 5).forEach((s, idx) => console.log('  ' + (idx + 1) + '. ' + s.name));
+}
 
 // Overwrite cache with properly classified & sorted streams and categories
 fs.writeFileSync('./channels_cache.json', JSON.stringify({
   lastSyncTime: new Date().toISOString(),
   categories: activeCats,
-  streams: updatedStreams
+  streams: orderedStreams
 }, null, 2), 'utf8');
 
-console.log('\nCache successfully updated with', updatedStreams.length, 'streams and', activeCats.length, 'categories.');
+console.log('\nCache successfully updated with', orderedStreams.length, 'streams and', activeCats.length, 'categories.');

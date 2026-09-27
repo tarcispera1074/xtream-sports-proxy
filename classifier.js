@@ -69,9 +69,10 @@ const BRAND_CATEGORIES = [
     name: 'US | ESPN Networks',
     slug: 'us-espn',
     description: 'ESPN, ESPN2, ESPNU, ESPNews, ESPN Deportes, SEC, ACC, ESPN+',
-    match: (name, cat) => {
+    match: (name, cat, country) => {
       if (/radio/i.test(name)) return false;
-      return /\bespn\b|\bsec\s*network\b|\bacc\s*network\b/i.test(name) || /\bespn/i.test(cat);
+      const isEspn = /\bespn\b|\bsec\s*network\b|\bacc\s*network\b/i.test(name) || /\bespn/i.test(cat);
+      return isEspn && (country === 'US' || /\bus\s*:/i.test(name) || !country);
     }
   },
   {
@@ -79,9 +80,10 @@ const BRAND_CATEGORIES = [
     name: 'US | Fox Sports',
     slug: 'us-fox-sports',
     description: 'FS1, FS2, Fox Sports 1, Fox Sports 2, Fox Sports Racing',
-    match: (name, cat) => {
+    match: (name, cat, country) => {
       if (/news|movies|series/i.test(name)) return false;
-      return /\bfox\s*sports?\b|\bfs[12]\b/i.test(name) || /\bfox\s*sport/i.test(cat);
+      const isFox = /\bfox\s*sports?\b|\bfs[12]\b/i.test(name) || /\bfox\s*sport/i.test(cat);
+      return isFox && (country === 'US' || /\bus\s*:/i.test(name) || !country);
     }
   },
   {
@@ -430,6 +432,7 @@ function classifyStream(stream, catName = '') {
 
   // Check temporary match events first
   const isMatchEvent = /^(end\b|ended\b|live\b|next\b)/i.test(name.trim()) ||
+    /no\s*event\s*streaming/i.test(name) ||
     /\|\s*\d{2,4}[-/]\d{2}[-/]\d{2,4}/i.test(name) ||
     /\|\s*\d{2}:\d{2}\s*(gmt|cet|cest|est|utc)/i.test(name) ||
     /\(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\)/.test(name);
@@ -514,6 +517,25 @@ function compareSportsChannels(a, b) {
   return restA.localeCompare(restB, undefined, { sensitivity: 'base', numeric: true });
 }
 
+// Ascending alphabetical sort inside each category
+function getAscendingChannelKey(stream) {
+  let name = (stream.name || '').trim();
+  const match = name.match(/^([A-Z]{2,4}|❓):\s*(.*)$/i);
+  let rest = match ? match[2] : name;
+  rest = rest.replace(/^[-_\s|#*]+/, '');
+  rest = rest.replace(/^\[[^\]]+\]\s*/, '');
+  rest = rest.replace(/^(4k|fhd|hd|sd|hevc|raw|vip)\s*[:|\-]\s*/i, '');
+  rest = rest.replace(/^[-_\s|#*]+/, '');
+  return rest.trim();
+}
+
+function compareAscendingChannels(a, b) {
+  const keyA = getAscendingChannelKey(a);
+  const keyB = getAscendingChannelKey(b);
+  return keyA.localeCompare(keyB, undefined, { sensitivity: 'base', numeric: true }) ||
+         (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base', numeric: true });
+}
+
 module.exports = {
   BRAND_CATEGORIES,
   classifyStream,
@@ -522,5 +544,7 @@ module.exports = {
   getFallbackEpg,
   detectCountry,
   getCountryWeight,
-  compareSportsChannels
+  compareSportsChannels,
+  getAscendingChannelKey,
+  compareAscendingChannels
 };

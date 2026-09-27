@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const zlib = require('zlib');
-const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel, compareSportsChannels } = require('./classifier');
+const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel, compareSportsChannels, compareAscendingChannels } = require('./classifier');
 const { syncSportsEpg } = require('./epg-sync');
 
 
@@ -156,9 +156,22 @@ async function syncChannels(force = false) {
       }
     }
 
-    // Sort all streams in descending country order (US top, UK next, etc., emojis last)
-    matched.sort(compareSportsChannels);
-    matched.forEach((s, idx) => { s.num = idx + 1; });
+    // Group streams by category, sorting each category's channels in ascending alphabetical order
+    const orderedStreams = [];
+    for (const cat of BRAND_CATEGORIES) {
+      const catStreams = matched.filter(s => s.category_id === String(cat.id));
+      if (catStreams.length > 0) {
+        catStreams.sort(compareAscendingChannels);
+        orderedStreams.push(...catStreams);
+      }
+    }
+    const processedIds = new Set(orderedStreams.map(s => s.stream_id));
+    const leftovers = matched.filter(s => !processedIds.has(s.stream_id));
+    if (leftovers.length > 0) {
+      leftovers.sort(compareAscendingChannels);
+      orderedStreams.push(...leftovers);
+    }
+    orderedStreams.forEach((s, idx) => { s.num = idx + 1; });
 
     // Prepare active categories list (only categories that have channels)
     sportsCategories = BRAND_CATEGORIES
@@ -172,7 +185,7 @@ async function syncChannels(force = false) {
         description: cat.description
       }));
 
-    sportsStreams = matched;
+    sportsStreams = orderedStreams;
     sportsEpgIds = epgSet;
     lastSyncTime = new Date().toISOString();
 
@@ -216,9 +229,24 @@ function loadDiskCache() {
           sportsEpgIds.add(s.epg_channel_id.trim().toLowerCase());
         }
       });
-      sportsStreams.sort(compareSportsChannels);
-      sportsStreams.forEach((s, idx) => { s.num = idx + 1; });
-      console.log(`[Cache] Loaded ${sportsStreams.length} cached sports channels from disk (sorted by Country: US top, UK next, emojis last).`);
+      // Sort streams inside each category in ascending alphabetical order
+      const orderedStreams = [];
+      for (const cat of BRAND_CATEGORIES) {
+        const catStreams = sportsStreams.filter(s => s.category_id === String(cat.id));
+        if (catStreams.length > 0) {
+          catStreams.sort(compareAscendingChannels);
+          orderedStreams.push(...catStreams);
+        }
+      }
+      const processedIds = new Set(orderedStreams.map(s => s.stream_id));
+      const leftovers = sportsStreams.filter(s => !processedIds.has(s.stream_id));
+      if (leftovers.length > 0) {
+        leftovers.sort(compareAscendingChannels);
+        orderedStreams.push(...leftovers);
+      }
+      orderedStreams.forEach((s, idx) => { s.num = idx + 1; });
+      sportsStreams = orderedStreams;
+      console.log(`[Cache] Loaded ${sportsStreams.length} cached sports channels from disk (channels sorted ascending A-Z inside each category).`);
       return true;
 
     } catch (e) {
@@ -313,12 +341,13 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Live Streams
+    // Live Streams (sorted in ascending alphabetical order inside each category)
     if (action === 'get_live_streams') {
       const categoryId = query.category_id;
       let filtered = sportsStreams;
       if (categoryId) {
         filtered = sportsStreams.filter(s => s.category_id === String(categoryId));
+        filtered = filtered.slice().sort(compareAscendingChannels);
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(filtered));
