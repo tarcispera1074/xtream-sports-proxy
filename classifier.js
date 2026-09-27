@@ -230,7 +230,7 @@ const BRAND_CATEGORIES = [
     slug: 'us-golf-ppv',
     description: 'PGA Tour Featured Groups & Holes',
     match: (name, cat) => {
-      return /us\|\s*golf\s*ppv/i.test(cat) || /pga\s*tour:.*:golf\s+\d+/i.test(name);
+      return /us\|\s*golf\s*ppv/i.test(cat) || /\b(pga\s*tour|dp\s*world\s*tour|nbc\s*golf)\b/i.test(name);
     }
   },
   {
@@ -413,7 +413,7 @@ const BRAND_CATEGORIES = [
     slug: 'se-nordic-sports-ppv',
     description: 'Swedish Telia Play+, TV4 Play, Expressen sports feeds (ATP Tennis, Hockey, Soccer)',
     match: (name, cat) => {
-      return /se\|\s*(play\+|tv4\s*play|expressen)\s*ppv/i.test(cat) || /:(telia\s*play\s*se|tv4\s*play\s*se|expressen)\s+\d+/i.test(name);
+      return /se\|\s*(play\+|tv4\s*play|expressen)\s*ppv/i.test(cat) || /:(telia\s*play\s*se|tv4\s*play\s*se|expressen)\s+\d+/i.test(name) || /\b(tv4\s*(hockey|fotboll|tennis)|v\s*fotboll)\b/i.test(name);
     }
   },
   {
@@ -422,7 +422,7 @@ const BRAND_CATEGORIES = [
     slug: 'rs-arena-sport',
     description: 'Arena Sport 1-10, Arena Premium 1-3 Serbia & Balkans',
     match: (name, cat) => {
-      return /\barena\s*sports?\b|\barena\s*premium\b/i.test(name) || /\barena\s*sport/i.test(cat);
+      return /\barena\s*(sports?|premium|esport)\b/i.test(name) || /\barena\s*sport/i.test(cat);
     }
   },
   {
@@ -489,7 +489,7 @@ const BRAND_CATEGORIES = [
     description: 'Italian Sky Sport Calcio, Uno, F1, MotoGP, Football, Tennis',
     match: (name, cat, country) => {
       if (/cinema|movie/i.test(name)) return false;
-      const isSky = /\bsky\s*sports?\b/i.test(name) || /sky.*sport/i.test(cat);
+      const isSky = /\bsky\s*sports?\b|super\s*tennis/i.test(name) || /sky.*sport/i.test(cat);
       return isSky && country === 'IT';
     }
   },
@@ -544,7 +544,7 @@ const BRAND_CATEGORIES = [
     slug: 'fr-canal-rmc-sport',
     description: 'Canal+ Sport, Canal+ Foot, Canal+ Live, RMC Sport 1-4, L\'Equipe, FFF TV',
     match: (name, cat) => {
-      return /\b(canal\+\s*(sport|foot|live)|rmc\s*sports?|l'equipe|fff\s*tv)\b/i.test(name) || /\b(canal\+.*sport|rmc\s*sport|fff\s*tv)\b/i.test(cat);
+      return /\b(canal\+\s*(sport|foot|live)|canal\s*top\s*14|rmc\s*sports?|l'equipe|fff\s*tv)\b|\bgolf\+/i.test(name) || /\b(canal\+.*sport|rmc\s*sport|fff\s*tv)\b/i.test(cat);
     }
   },
   {
@@ -563,7 +563,7 @@ const BRAND_CATEGORIES = [
     slug: 'fi-play-mtv-ppv',
     description: 'Finland Telia Play+ & MTV sports event feeds (ATP Tennis, Hockey, Cycling)',
     match: (name, cat) => {
-      return /fi\|\s*(play\+|mtv)\s*ppv/i.test(cat) || /:(telia\s*fi|mtv\s*fi)\s+\d+/i.test(name);
+      return /fi\|\s*(play\+|mtv)\s*ppv/i.test(cat) || /:(telia\s*fi|mtv\s*fi)\s+\d+/i.test(name) || /\bmtv\s*(liiga|fotboll)\b/i.test(name);
     }
   },
   {
@@ -581,7 +581,7 @@ const BRAND_CATEGORIES = [
     slug: 'eu-viaplay-ppv',
     description: 'Nordic & European Viaplay event feeds (Premier League, F1, Bundesliga across NO, SE, DK, FI, IS)',
     match: (name, cat) => {
-      return /viaplay\s*ppv|viaplay\s*hd|viaplay\s*raw/i.test(cat) || /:viaplay\s*(no|se|dk|fi|is)\s+\d+/i.test(name);
+      return /viaplay\s*ppv|viaplay\s*hd|viaplay\s*raw/i.test(cat) || /:viaplay\s*(no|se|dk|fi|is)\s+\d+/i.test(name) || /\b(viaplay\s*(fotboll|vinter|motor|see|dk\d+)|v\s*golf)\b/i.test(name);
     }
   },
   {
@@ -599,7 +599,7 @@ const BRAND_CATEGORIES = [
     slug: 'es-movistar-deportes',
     description: 'Movistar Deportes 1-4, Movistar LaLiga, Movistar Liga de Campeones, Gol Play, RFEF',
     match: (name, cat) => {
-      return /\b(movistar\s*(deportes|laliga|liga\s*de\s*campeones)|gol\s*play|rfef|1°\s*federacion)\b/i.test(name) || /\b(movistar\s*deportes|laliga|rfef)\b/i.test(cat);
+      return /\b(movistar\s*(deportes|laliga|liga\s*de\s*campeones)|gol\s*play|rfef|1°\s*federacion|copa\s*del\s*rey)\b/i.test(name) || /\b(movistar\s*deportes|laliga|rfef|copa\s*del\s*rey)\b/i.test(cat);
     }
   },
   {
@@ -655,7 +655,7 @@ const BRAND_CATEGORIES = [
     slug: 'ca-tsn-sportsnet',
     description: 'TSN 1-5, Sportsnet Ontario, East, West, Pacific, SN360, SN One, SN World',
     match: (name, cat) => {
-      return /\b(tsn\s*[1-5]|sportsnet|sn\s*(now|360|1|east|west|ontario|pacific|world))\b/i.test(name) || /\b(tsn|sportsnet)\b/i.test(cat);
+      return /\b(tsn\s*[1-5]|sportsnet|sn\s*(now|360|1|east|west|ontario|pacific|world)|ca:\s*golf)\b/i.test(name) || /\b(tsn|sportsnet)\b/i.test(cat);
     }
   },
   {
@@ -673,7 +673,7 @@ const BRAND_CATEGORIES = [
     slug: 'au-optus-stan-sport',
     description: 'Optus Sport 1-11, Stan Sport Australia',
     match: (name, cat) => {
-      return /\b(optus\s*(sport|\d+)|stan\s*sport)\b/i.test(name) || /\boptus\b/i.test(cat);
+      return /\b(optus\s*(sport|\d+)|stan\s*sport|liv\s*golf)\b/i.test(name) || /\boptus\b/i.test(cat);
     }
   },
   {
@@ -744,7 +744,7 @@ const BRAND_CATEGORIES = [
     description: 'UFC Fight Pass, WWE Network, BoxNation, Fight Network, PPV Boxing & MMA',
     match: (name, cat) => {
       if (/movie|drama/i.test(name)) return false;
-      return /\b(ufc|wwe|boxnation|fight\s*network|fight\s*box|boxing)\b/i.test(name) || /\b(ufc|wwe|boxing|fight)\b/i.test(cat);
+      return /\b(ufc|wwe|boxnation|fight\s*network|fight\s*box|boxing|bellator|one\s*championship|videoland.*ppv|ppv\s*mma|aew\s*dynamite|mma\s*tv|mma\s*mexico)\b/i.test(name) || /\b(ufc|wwe|boxing|fight|glory\s*ppv)\b/i.test(cat);
     }
   },
   {
@@ -839,7 +839,7 @@ function classifyStream(stream, catName = '') {
   const unidentCat = BRAND_CATEGORIES.find(c => c.slug === 'unidentified-sports');
 
   // If sports-related but specific country or brand cannot be identified:
-  const isSportsRelated = /\bsports?\b|\bdeportes?\b|\besportes?\b|bein|espn|sky|tnt|dazn|optus|astro|willow|cricket|football|soccer|league|fight|ufc|nba|nfl|mlb|nhl|wwe|boxing|f1|formula|motorsport|racing|desporto|sportowe|alwan|starzplay|shasha|tod\b|epl\b|flsp|flosports/i.test(name + ' ' + catName);
+  const isSportsRelated = /\bsports?\b|\bdeportes?\b|\besportes?\b|bein|espn|sky|tnt|dazn|optus|astro|willow|cricket|football|soccer|league|fight|ufc|nba|nfl|mlb|nhl|wwe|boxing|f1|formula|motorsport|racing|desporto|sportowe|alwan|starzplay|shasha|tod\b|epl\b|flsp|flosports|khl\b|match!\s*futbol|ginx\s*esports|telekanal\s*futbol|esport\s*24/i.test(name + ' ' + catName);
   if (isSportsRelated) {
     if (!/cinema|movie|series|adult|xxx|kids/i.test(name + ' ' + catName)) {
       return unidentCat;

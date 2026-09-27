@@ -33,7 +33,7 @@ You can enter these credentials into **any IPTV player** (TiviMate, IPTV Smarter
 
 ---
 
-## 🏆 Categorization & Channel Groups (74 Categories, 23,848 Channels)
+## 🏆 Categorization & Channel Groups (74 Categories, 23,938 Channels)
 
 Instead of 900+ mixed country folders and 57,000+ cluttered channels, your IPTV is now classified into clean, country-specific sports groups in **descending alphabetical order** (with Asian Sports and US at the top), with emoji categories listed last:
 
