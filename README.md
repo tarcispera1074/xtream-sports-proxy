@@ -82,7 +82,8 @@ Instead of 900+ mixed country folders and 57,000+ cluttered channels, your IPTV 
 - **🏎️ Motorsport** (Formula 1, F1 TV, MotoGP, NASCAR, Motorvision TV)
 - **⚽ Football Club Channels** (MUTV, LFCTV, Chelsea TV, Real Madrid TV, Barça TV, Arsenal TV, City TV)
 - **🎟️ Live Sports PPV & Match Feeds** (Dedicated live match event feeds, PPVs, and temporary game links)
-- **🌐 Other World Sports Channels** (General sports channels from around the world)
+- **❓ Unidentified / Other Sports Channels** (Sports channels whose specific country or network could not be verified)
+
 
 
 ---

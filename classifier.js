@@ -400,14 +400,11 @@ const BRAND_CATEGORIES = [
   },
   {
     id: 135,
-    name: '🌐 Other World Sports Channels',
-    slug: 'other-sports',
-    description: 'General sports channels from around the world',
-    match: (name, cat) => {
-      if (/cinema|movie|series|adult|xxx|kids/i.test(name) || /cinema|movie|series|adult|xxx|kids/i.test(cat)) return false;
-      return /\bsports?\b|\bdeportes?\b|\besportes?\b/i.test(name) || /\bsports?\b|\bdeportes?\b|\besportes?\b/i.test(cat);
-    }
+    name: '❓ Unidentified / Other Sports Channels',
+    slug: 'unidentified-sports',
+    description: 'Sports channels whose specific country or network could not be identified'
   }
+
 ];
 
 function cleanChannelName(rawName) {
@@ -423,7 +420,8 @@ function formatCountryChannel(name, epgId = '') {
   const country = detectCountry(raw, epgId);
   raw = raw.replace(/^(4k|vip|now|raw|fhd|hd|sd|hevc|skygo|wow)\s*[:|\-]\s*/i, '').trim();
   raw = raw.replace(/^([A-Z]{2,4})\s*[:|\-]\s*/i, '').trim();
-  return `${country}: ${raw}`;
+  const prefix = country && country !== 'INT' ? `${country}: ` : '❓: ';
+  return `${prefix}${raw}`;
 }
 
 function classifyStream(stream, catName = '') {
@@ -438,20 +436,27 @@ function classifyStream(stream, catName = '') {
   }
 
   const country = detectCountry(name, stream.epg_channel_id);
+  const unidentCat = BRAND_CATEGORIES.find(c => c.slug === 'unidentified-sports');
 
+  // Match against specific country & brand categories
   for (const cat of BRAND_CATEGORIES) {
-    if (cat.slug === 'sports-events-ppv') continue;
+    if (cat.slug === 'sports-events-ppv' || cat.slug === 'unidentified-sports') continue;
     if (cat.match(name, catName, country)) {
       return cat;
     }
   }
 
-  if (ppvCat && ppvCat.match(name, catName)) {
-    return ppvCat;
+  // If sports-related but specific country or brand cannot be identified:
+  const isSportsRelated = /\bsports?\b|\bdeportes?\b|\besportes?\b|bein|espn|sky|tnt|dazn|optus|astro|willow|cricket|football|soccer|nfl|nba|mlb|nhl|ufc|fight|wwe|boxing|f1|formula|motorsport|racing/i.test(name + ' ' + catName);
+  if (isSportsRelated) {
+    if (!/cinema|movie|series|adult|xxx|kids/i.test(name + ' ' + catName)) {
+      return unidentCat;
+    }
   }
 
   return null;
 }
+
 
 function getFallbackEpg(name) {
   if (!name) return '';
