@@ -1,0 +1,15 @@
+{
+  "upstream": {
+    "serverUrl": "https://operator2.barfik.org",
+    "username": "p1aa42v662",
+    "password": "7w373w9tr3"
+  },
+  "proxy": {
+    "port": 5055,
+    "username": "sports",
+    "password": "sports",
+    "streamMode": "redirect",
+    "syncIntervalHours": 12,
+    "includePPVCategory": true
+  }
+}

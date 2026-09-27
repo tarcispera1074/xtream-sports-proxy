@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xtream Sports Hub & Proxy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(18, 24, 38, 0.75);
+      --bg-card-hover: rgba(26, 35, 54, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 229, 255, 0.3);
+      --primary: #00e5ff;
+      --primary-glow: rgba(0, 229, 255, 0.25);
+      --accent: #10b981;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --badge-bg: rgba(255, 255, 255, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #00e5ff, #6366f1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 4px 20px var(--primary-glow);
+    }
+    .logo-text h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo-text p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.4rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #34d399;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    /* Xtream Connection Setup Box */
+    .setup-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+    }
+    .setup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .setup-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .ip-switcher {
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .ip-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.35rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ip-btn.active {
+      background: var(--primary);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .cred-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .cred-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      position: relative;
+    }
+    .cred-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .cred-value-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cred-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      user-select: all;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+    }
+
+    .direct-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .direct-link-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .direct-link-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Stats Banner */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Categories Shelf */
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 2.5rem;
+    }
+    .cat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cat-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+    .cat-card.active {
+      background: rgba(0, 229, 255, 0.12);
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    }
+    .cat-info h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+    .cat-info p {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      max-width: 170px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cat-count {
+      background: var(--badge-bg);
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* Search & Channels Section */
+    .channels-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 1rem 0.7rem 2.5rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+    }
+
+    /* Channels Grid */
+    .channels-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .channel-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      transition: all 0.2s;
+    }
+    .channel-item:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .ch-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .ch-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .ch-meta {
+      flex: 1;
+      overflow: hidden;
+    }
+    .ch-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ch-tags {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.25rem;
+      flex-wrap: wrap;
+    }
+    .ch-tag {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+    .ch-tag.badge-epg {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+    .ch-tag.badge-res {
+      background: rgba(0, 229, 255, 0.12);
+      color: var(--primary);
+    }
+
+    .ch-play-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ch-play-btn:hover {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+    }
+
+    /* Modal Player */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-content {
+      background: #0f1422;
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      max-width: 800px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+    .modal-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .video-wrap {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+    }
+    .video-wrap video {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #10b981;
+      color: #000;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+      display: none;
+      z-index: 2000;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-group">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <h1>Xtream Sports Proxy</h1>
+          <p>Filtered Sports IPTV • Channel Name Grouping • Fast EPG</p>
+        </div>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="upstreamStatus">Connecting to Provider...</span>
+      </div>
+    </header>
+
+    <!-- Xtream Codes Login Box -->
+    <div class="setup-card">
+      <div class="setup-header">
+        <div class="setup-title">
+          <span>📡 Your Sports Xtream Codes Login</span>
+        </div>
+        <div class="ip-switcher">
+          <button class="ip-btn active" id="btnLocal" onclick="setHostMode('local')">Local PC</button>
+          <button class="ip-btn" id="btnLan" onclick="setHostMode('lan')">Wi-Fi (TV / FireStick)</button>
+        </div>
+      </div>
+
+      <div class="cred-grid">
+        <div class="cred-box">
+          <span class="cred-label">Server URL (Xtream API)</span>
+          <div class="cred-value-row">
+            <span class="cred-value" id="valServerUrl">http://localhost:5055</span>
+            <button class="copy-btn" onclick="copyText('valServerUrl')">Copy</button>
+          </div>
+        </div>
+        <div class="cred-box">
+          <span class="cred-label">Username</span>
+          <div class="cred-value-row">
+            <span class="cred-value" id="valUsername">sports</span>
+            <button class="copy-btn" onclick="copyText('valUsername')">Copy</button>
+          </div>
+        </div>
+        <div class="cred-box">
+          <span class="cred-label">Password</span>
+          <div class="cred-value-row">
+            <span class="cred-value" id="valPassword">sports</span>
+            <button class="copy-btn" onclick="copyText('valPassword')">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="direct-links">
+        <button class="direct-link-btn" onclick="copyPlaylistUrl()">
+          📋 Copy M3U Plus Playlist URL
+        </button>
+        <button class="direct-link-btn" onclick="copyEpgUrl()">
+          📅 Copy XMLTV EPG URL
+        </button>
+        <button class="direct-link-btn" onclick="triggerSync()" style="margin-left: auto;">
+          🔄 Sync Channels & EPG
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" id="statChannels">-</div>
+        <div class="stat-label">Sports Channels Categorized</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statCategories">-</div>
+        <div class="stat-label">Channel Brand Groups</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statEpg">-</div>
+        <div class="stat-label">Channels with Live EPG Guides</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color: #34d399;" id="statMode">Instant 302</div>
+        <div class="stat-label">Direct High-Bitrate CDN Stream</div>
+      </div>
+    </div>
+
+    <!-- Categories Shelf -->
+    <div class="section-title">
+      <span>Channels Grouped by Network / Name</span>
+      <span style="font-size: 0.85rem; color: var(--text-dim);" id="catCounter"></span>
+    </div>
+    <div class="cats-grid" id="catsContainer">
+      <!-- Populated via JS -->
+    </div>
+
+    <!-- Channels Explorer -->
+    <div class="channels-header">
+      <div class="section-title" style="margin-bottom:0;">
+        <span id="activeGroupName">All Sports Channels</span>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search Sky Sports, TNT, ESPN, Willow, UFC, F1..." oninput="handleSearch()">
+      </div>
+    </div>
+
+    <div class="channels-list" id="channelsContainer">
+      <div style="padding: 2rem; text-align: center; color: var(--text-dim); grid-column: 1/-1;">Loading channels...</div>
+    </div>
+  </div>
+
+  <!-- Video Preview Modal -->
+  <div class="modal-overlay" id="playerModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="modalChannelName">Channel Preview</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="video-wrap">
+        <video id="previewVideo" controls autoplay></video>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    let serverConfig = null;
+    let currentHostMode = 'local';
+    let selectedCategoryId = null;
+    let searchDebounce = null;
+
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        serverConfig = await res.json();
+
+        document.getElementById('upstreamStatus').innerText = `Active (Provider: ${serverConfig.upstream.serverUrl.replace('https://', '')})`;
+        document.getElementById('statChannels').innerText = serverConfig.channelsCount.toLocaleString();
+        document.getElementById('statCategories').innerText = serverConfig.categoriesCount;
+        document.getElementById('statEpg').innerText = serverConfig.epgCount.toLocaleString();
+        document.getElementById('valUsername').innerText = serverConfig.credentials.username;
+        document.getElementById('valPassword').innerText = serverConfig.credentials.password;
+
+        updateHostDisplay();
+        renderCategories(serverConfig.categories);
+        loadChannels();
+      } catch (e) {
+        console.error('Failed to load status', e);
+      }
+    }
+
+    function setHostMode(mode) {
+      currentHostMode = mode;
+      document.getElementById('btnLocal').classList.toggle('active', mode === 'local');
+      document.getElementById('btnLan').classList.toggle('active', mode === 'lan');
+      updateHostDisplay();
+    }
+
+    function getActiveHost() {
+      if (!serverConfig) return window.location.host;
+      if (currentHostMode === 'lan' && serverConfig.primaryLocalIp) {
+        return `${serverConfig.primaryLocalIp}:${serverConfig.serverPort}`;
+      }
+      return `localhost:${serverConfig.serverPort}`;
+    }
+
+    function updateHostDisplay() {
+      const host = getActiveHost();
+      document.getElementById('valServerUrl').innerText = `http://${host}`;
+    }
+
+    function renderCategories(cats) {
+      const container = document.getElementById('catsContainer');
+      let html = `
+        <div class="cat-card ${selectedCategoryId === null ? 'active' : ''}" onclick="selectCategory(null)">
+          <div class="cat-info">
+            <h3>🌟 All Sports Channels</h3>
+            <p>Complete combined sports catalog</p>
+          </div>
+          <span class="cat-count">${serverConfig.channelsCount}</span>
+        </div>
+      `;
+
+      cats.forEach(c => {
+        const active = selectedCategoryId === c.category_id ? 'active' : '';
+        html += `
+          <div class="cat-card ${active}" onclick="selectCategory('${c.category_id}', '${c.category_name.replace(/'/g, "\\'")}')">
+            <div class="cat-info">
+              <h3>${c.category_name}</h3>
+              <p>${c.description || ''}</p>
+            </div>
+            <span class="cat-count">${c.count}</span>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function selectCategory(catId, catName) {
+      selectedCategoryId = catId;
+      document.getElementById('activeGroupName').innerText = catName || 'All Sports Channels';
+      renderCategories(serverConfig.categories);
+      loadChannels();
+    }
+
+    function handleSearch() {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(loadChannels, 250);
+    }
+
+    async function loadChannels() {
+      const container = document.getElementById('channelsContainer');
+      const search = document.getElementById('searchInput').value.trim();
+
+      let url = `/api/channels?limit=60`;
+      if (selectedCategoryId) url += `&category=${encodeURIComponent(selectedCategoryId)}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.channels.length === 0) {
+          container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-dim); grid-column: 1/-1;">No channels found matching "${search}"</div>`;
+          return;
+        }
+
+        let html = '';
+        data.channels.forEach(ch => {
+          const logo = ch.stream_icon ? `<img src="${ch.stream_icon}" onerror="this.style.display='none'">` : '📺';
+          const epgBadge = ch.epg_channel_id ? `<span class="ch-tag badge-epg">EPG: ${ch.epg_channel_id}</span>` : '';
+          const resBadge = /4k|uhd/i.test(ch.name) ? '<span class="ch-tag badge-res">4K</span>' : (/raw/i.test(ch.name) ? '<span class="ch-tag badge-res">RAW</span>' : '');
+
+          html += `
+            <div class="channel-item">
+              <div class="ch-logo">${logo}</div>
+              <div class="ch-meta">
+                <div class="ch-title" title="${ch.name}">${ch.name}</div>
+                <div class="ch-tags">
+                  <span class="ch-tag">${ch.group_name || 'Sports'}</span>
+                  ${resBadge}
+                  ${epgBadge}
+                </div>
+              </div>
+              <button class="ch-play-btn" title="Preview Stream" onclick="previewStream(${ch.stream_id}, '${ch.name.replace(/'/g, "\\'")}')">
+                ▶
+              </button>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function previewStream(streamId, name) {
+      const host = getActiveHost();
+      const user = serverConfig.credentials.username;
+      const pass = serverConfig.credentials.password;
+      const streamUrl = `http://${host}/live/${user}/${pass}/${streamId}.ts`;
+
+      document.getElementById('modalChannelName').innerText = name;
+      const video = document.getElementById('previewVideo');
+      video.src = streamUrl;
+      video.play().catch(e => console.log('Autoplay blocked or format unsupported directly by browser:', e));
+      document.getElementById('playerModal').classList.add('open');
+    }
+
+    function closeModal(e) {
+      const modal = document.getElementById('playerModal');
+      modal.classList.remove('open');
+      const video = document.getElementById('previewVideo');
+      video.pause();
+      video.src = '';
+    }
+
+    function copyText(elemId) {
+      const text = document.getElementById(elemId).innerText;
+      navigator.clipboard.writeText(text);
+      showToast('Copied to clipboard!');
+    }
+
+    function copyPlaylistUrl() {
+      const host = getActiveHost();
+      const user = serverConfig.credentials.username;
+      const pass = serverConfig.credentials.password;
+      const url = `http://${host}/get.php?username=${user}&password=${pass}&type=m3u_plus`;
+      navigator.clipboard.writeText(url);
+      showToast('M3U Playlist URL copied!');
+    }
+
+    function copyEpgUrl() {
+      const host = getActiveHost();
+      const user = serverConfig.credentials.username;
+      const pass = serverConfig.credentials.password;
+      const url = `http://${host}/xmltv.php?username=${user}&password=${pass}`;
+      navigator.clipboard.writeText(url);
+      showToast('XMLTV EPG URL copied!');
+    }
+
+    async function triggerSync() {
+      showToast('Sync started from IPTV provider...');
+      await fetch('/api/sync', { method: 'POST' });
+      setTimeout(loadStatus, 3000);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2500);
+    }
+
+    loadStatus();
+  </script>
+</body>
+</html>

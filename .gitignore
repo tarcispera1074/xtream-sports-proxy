@@ -1,0 +1,4 @@
+node_modules/
+sports_epg.xml*
+*.tmp
+*.log

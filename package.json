@@ -1,0 +1,17 @@
+{
+  "name": "xtream-sports-proxy",
+  "version": "1.0.0",
+  "description": "Smart Xtream Codes Sports Proxy with EPG and Channel-Brand Grouping",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "iptv",
+    "xtream-codes",
+    "sports",
+    "epg"
+  ],
+  "author": "",
+  "license": "ISC"
+}
