@@ -6,8 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const zlib = require('zlib');
-const { BRAND_CATEGORIES, classifyStream, cleanChannelName } = require('./classifier');
+const { BRAND_CATEGORIES, classifyStream, cleanChannelName, formatCountryChannel } = require('./classifier');
 const { syncSportsEpg } = require('./epg-sync');
+
 
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const CACHE_PATH = path.join(__dirname, 'channels_cache.json');
@@ -125,10 +126,12 @@ async function syncChannels(force = false) {
           continue;
         }
 
+        const countryChannelName = formatCountryChannel(s.name, s.epg_channel_id);
         const cleanName = cleanChannelName(s.name);
         const mappedStream = {
           num: matched.length + 1,
-          name: s.name,
+          name: countryChannelName,
+          original_name: s.name,
           clean_name: cleanName,
           stream_type: "live",
           stream_id: s.stream_id,
@@ -153,6 +156,10 @@ async function syncChannels(force = false) {
       }
     }
 
+    // Sort all streams in alphabetical order by "Country: Channel"
+    matched.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+    matched.forEach((s, idx) => { s.num = idx + 1; });
+
     // Prepare active categories list (only categories that have channels)
     sportsCategories = BRAND_CATEGORIES
       .filter(cat => groupCountMap[cat.id] > 0)
@@ -168,6 +175,7 @@ async function syncChannels(force = false) {
     sportsStreams = matched;
     sportsEpgIds = epgSet;
     lastSyncTime = new Date().toISOString();
+
 
     // Save to disk cache
     fs.writeFileSync(CACHE_PATH, JSON.stringify({
@@ -200,12 +208,19 @@ function loadDiskCache() {
       lastSyncTime = data.lastSyncTime || null;
       sportsEpgIds = new Set();
       sportsStreams.forEach(s => {
+        if (!s.original_name) {
+          s.original_name = s.name;
+          s.name = formatCountryChannel(s.original_name, s.epg_channel_id);
+        }
         if (s.epg_channel_id && s.epg_channel_id.trim()) {
           sportsEpgIds.add(s.epg_channel_id.trim().toLowerCase());
         }
       });
-      console.log(`[Cache] Loaded ${sportsStreams.length} cached sports channels from disk.`);
+      sportsStreams.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+      sportsStreams.forEach((s, idx) => { s.num = idx + 1; });
+      console.log(`[Cache] Loaded ${sportsStreams.length} cached sports channels from disk (sorted alphabetically by Country: Channel).`);
       return true;
+
     } catch (e) {
       console.error('[Cache] Failed to load cache file:', e.message);
     }

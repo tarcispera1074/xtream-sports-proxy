@@ -241,21 +241,99 @@ function cleanChannelName(rawName) {
     .trim();
 }
 
+const COUNTRY_MAP = {
+  'UK': 'UK', 'GB': 'UK', 'US': 'US', 'USA': 'US', 'DE': 'DE', 'IT': 'IT', 
+  'FR': 'FR', 'ES': 'ES', 'CA': 'CA', 'AU': 'AU', 'NZ': 'NZ', 'PL': 'PL', 
+  'NL': 'NL', 'PT': 'PT', 'AR': 'AR', 'SA': 'SA', 'ZA': 'ZA', 'IN': 'IN', 
+  'PK': 'PK', 'RS': 'RS', 'HR': 'HR', 'AL': 'AL', 'BG': 'BG', 'RO': 'RO', 
+  'GR': 'GR', 'TR': 'TR', 'SE': 'SE', 'NO': 'NO', 'DK': 'DK', 'FI': 'FI', 
+  'BE': 'BE', 'CH': 'CH', 'AT': 'AT', 'SG': 'SG', 'MY': 'MY', 'BR': 'BR', 
+  'MX': 'MX', 'CL': 'CL', 'LV': 'LV', 'LT': 'LT', 'EE': 'EE', 'IL': 'IL',
+  'IE': 'IE', 'CZ': 'CZ', 'SK': 'SK', 'HU': 'HU'
+};
+
+function formatCountryChannel(name, epgId = '') {
+  let raw = name ? name.trim() : '';
+  let country = null;
+
+  // 1. Check existing prefix e.g. 'UK: ...', 'US| ...', 'DE - ...'
+  const match = raw.match(/^([A-Z]{2,4})\s*[:|\-]\s*/i);
+  if (match) {
+    const code = match[1].toUpperCase();
+    if (COUNTRY_MAP[code]) {
+      country = COUNTRY_MAP[code];
+      raw = raw.slice(match[0].length).trim();
+    }
+  }
+
+  // 2. Check EPG ID suffix e.g. .uk, .de, .it, .us, .ca, .au, .nz
+  if (!country && epgId) {
+    const epgMatch = epgId.trim().toLowerCase().match(/\.([a-z]{2})$/);
+    if (epgMatch && COUNTRY_MAP[epgMatch[1].toUpperCase()]) {
+      country = COUNTRY_MAP[epgMatch[1].toUpperCase()];
+    }
+  }
+
+  // 3. Known services and networks
+  if (!country) {
+    if (/\b(now\s*tv\b|now:\b|tnt\s*sports?|sky\s*sports\b)/i.test(raw)) country = 'UK';
+    else if (/\b(wow:\b|skygo:\s*sky\s*sport|bundesliga)/i.test(raw)) country = 'DE';
+    else if (/\b(optus|stan\s*sport)\b/i.test(raw)) country = 'AU';
+    else if (/\b(tsn\s*[1-5]|sportsnet|sn\s*(now|360|1))\b/i.test(raw)) country = 'CA';
+    else if (/\b(supersport)\b/i.test(raw)) country = 'ZA';
+    else if (/\b(astro\s*(supersport|arena|cricket))\b/i.test(raw)) country = 'MY';
+    else if (/\b(willow|bally|nesn|yes\s*network|espn\b|fs[12]|sec\s*network|acc\s*network|marquee|altitude|nfl\b|nba\b|mlb\b|nhl\b)\b/i.test(raw)) country = 'US';
+    else if (/\b(movistar|laliga|gol\s*play)\b/i.test(raw)) country = 'ES';
+    else if (/\b(canal\+\s*(sport|foot)|rmc\s*sport|l'equipe)\b/i.test(raw)) country = 'FR';
+    else if (/\b(sport\s*tv\s*[1-7]|premiere\s*\d+|canal\s*combate)\b/i.test(raw)) country = 'PT';
+    else if (/\b(ssc\s*sports?|alkass|abu\s*dhabi)\b/i.test(raw)) country = 'AR';
+    else if (/\b(arena\s*sports?|arena\s*premium)\b/i.test(raw)) country = 'RS';
+    else if (/\b(ptv\s*sports?|geo\s*super)\b/i.test(raw)) country = 'PK';
+    else if (/\b(star\s*sports?|sony\s*(ten|six|sports))\b/i.test(raw)) country = 'IN';
+    else if (/\bziggo\b/i.test(raw)) country = 'NL';
+    else if (/\b(viasat|v\s*sport)\b/i.test(raw)) country = 'SE';
+    else if (/\b(ppv|ufc|wwe|boxing)\b/i.test(raw)) country = 'PPV';
+    else country = 'INT';
+  }
+
+  // Strip non-country prefixes like 4K:, VIP:, NOW: from raw
+  raw = raw.replace(/^(4k|vip|now|raw|fhd|hd|sd|hevc|skygo|wow)\s*[:|\-]\s*/i, '').trim();
+
+  return `${country}: ${raw}`;
+}
+
 // Function to classify a stream
 function classifyStream(stream, catName = '') {
   const name = stream.name || '';
   if (/^#+.*#+$/.test(name.trim())) return null; // Section banner
 
+  // Check if it's a temporary match feed or event replay
+  const isMatchEvent = /^(end\b|ended\b)/i.test(name.trim()) || /\|\s*\d{2}-\d{2}-\d{4}/i.test(name) || /\|\s*\d{2}:\d{2}\s*(gmt|cet|cest|est|utc)/i.test(name);
+  const ppvCat = BRAND_CATEGORIES.find(c => c.slug === 'sports-events-ppv');
+  if (isMatchEvent && ppvCat && ppvCat.match(name, catName)) {
+    return ppvCat;
+  }
+
   for (const cat of BRAND_CATEGORIES) {
+    if (cat.slug === 'sports-events-ppv') continue; // Checked after linear brands
     if (cat.match(name, catName)) {
       return cat;
     }
   }
+
+  // Fallback to PPV / Events
+  if (ppvCat && ppvCat.match(name, catName)) {
+    return ppvCat;
+  }
+
   return null;
 }
 
 module.exports = {
   BRAND_CATEGORIES,
   classifyStream,
-  cleanChannelName
+  cleanChannelName,
+  formatCountryChannel
 };
+
+
