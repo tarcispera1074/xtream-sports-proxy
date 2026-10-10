@@ -9,7 +9,7 @@ const COUNTRY_MAP = {
   'BE': 'BE', 'CH': 'CH', 'AT': 'AT', 'SG': 'SG', 'MY': 'MY', 'BR': 'BR', 
   'MX': 'MX', 'CL': 'CL', 'LV': 'LV', 'LT': 'LT', 'EE': 'EE', 'IL': 'IL',
   'IE': 'IE', 'CZ': 'CZ', 'SK': 'SK', 'HU': 'HU', 'HK': 'HK', 'AS': 'AS', 'ASIA': 'AS',
-  'KR': 'KR', 'ID': 'ID', 'CRB': 'CRB', 'AFG': 'AF', 'AF': 'AF'
+  'KR': 'KR', 'ID': 'ID', 'CRB': 'CRB', 'AFG': 'AF', 'AF': 'AF', 'PH': 'PH', 'IRL': 'UK'
 };
 
 function detectCountry(raw, epgId = '') {
@@ -37,7 +37,7 @@ function detectCountry(raw, epgId = '') {
   }
   // Keyword heuristics
   if (!country) {
-    if (/\b(now\s*tv\b|now:\b|tnt\s*sports?|sky\s*sports\b|premier\s*league\b|national\s*league\b)/i.test(raw)) country = 'UK';
+    if (/\b(now\s*tv\b|now:\b|tnt\s*sports?|sky\s*sports\b|premier\s*league\b|national\s*league\b|premier\s*sports?\b)/i.test(raw) && !/hk\s*now|now\s*premier|ph\s*:|cz\s*:/i.test(raw)) country = 'UK';
     else if (/\b(wow:\b|skygo:\s*sky\s*sport|bundesliga)/i.test(raw)) country = 'DE';
     else if (/\baustria\b/i.test(raw) && /sky.*sport/i.test(raw)) country = 'AT';
     else if (/\b(optus|stan\s*sport)/i.test(raw)) country = 'AU';
@@ -102,8 +102,8 @@ function isUsEventFeed(name, cat, country) {
 
 // Country & Brand categories ordered:
 // 1. AS | Asian Sports (AT THE VERY TOP)
-// 2. All US categories (consecutive)
-// 3. All UK categories (consecutive)
+// 2. All UK categories in alphabetical order
+// 3. All US categories in alphabetical order
 // 4. Other countries ascending: AR, AT, AU, CA, DE, DK, ES, EU, FI, FR, IE, IT, NL, NO, NZ, PL, PT, RS, SE, ZA
 // 5. Channel categories with Emojis listed LAST
 const BRAND_CATEGORIES = [
@@ -129,189 +129,15 @@ const BRAND_CATEGORIES = [
   },
 
   // ==========================================
-  // --- GROUP 1: UNITED STATES (US) ---
+  // --- GROUP 1: UNITED KINGDOM (UK) - ALPHABETICAL ---
   // ==========================================
   {
-    id: 101,
-    name: 'US | ESPN Networks',
-    slug: 'us-espn',
-    description: 'ESPN, ESPN2, ESPNU, ESPNews, ESPN Deportes, SEC, ACC (24/7 Linear Broadcasts)',
-    match: (name, cat, country) => {
-      if (/radio/i.test(name)) return false;
-      const isEspn = /\bespn\b|\bsec\s*network\b|\bacc\s*network\b/i.test(name) || /\bespn/i.test(cat);
-      return isEspn && (country === 'US' || /\bus\s*:/i.test(name) || !country) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 102,
-    name: 'US | Fox Sports',
-    slug: 'us-fox-sports',
-    description: 'FS1, FS2, Fox Sports 1, Fox Sports 2, Fox Sports Racing (24/7 Linear Broadcasts)',
-    match: (name, cat, country) => {
-      if (/news|movies|series/i.test(name)) return false;
-      const isFox = /\bfox\s*sports?\b|\bfs[12]\b/i.test(name) || /\bfox\s*sport/i.test(cat);
-      return isFox && (country === 'US' || /\bus\s*:/i.test(name) || !country) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 103,
-    name: 'US | NBC Sports',
-    slug: 'us-nbc-sports',
-    description: 'NBC Sports Bay Area, Boston, California, Chicago, Philadelphia, NBC Sports Now',
+    id: 122,
+    name: 'UK | Championship PPV',
+    slug: 'uk-championship-ppv',
+    description: 'English EFL Championship team live match feeds',
     match: (name, cat) => {
-      return (/\b(nbc\s*sports?)\b/i.test(name) || /\b(nbc\s*sport)\b/i.test(cat)) && !/golf/i.test(name);
-    }
-  },
-  {
-    id: 104,
-    name: 'US | CBS Sports',
-    slug: 'us-cbs-sports',
-    description: 'CBS Sports Network, CBS Sports Golazo Network, CBS Sports HQ, CBS Sports USA',
-    match: (name, cat) => {
-      return /\b(cbs\s*sports?)\b/i.test(name) || /\b(cbs\s*sport)\b/i.test(cat);
-    }
-  },
-  {
-    id: 105,
-    name: 'US | Bally Sports',
-    slug: 'us-bally-sports',
-    description: 'Bally Sports Regional Networks & FanDuel Sports Network (Arizona, Detroit, Florida, Midwest, North, Ohio, South, Sun, West, Wisconsin)',
-    match: (name, cat) => {
-      return /\b(bally\s*sports?|fanduel\s*sports?)\b/i.test(name) || /\bbally/i.test(cat);
-    }
-  },
-  {
-    id: 106,
-    name: 'US | NESN',
-    slug: 'us-nesn',
-    description: 'NESN, NESN+, NESN Boston, NESN Nation',
-    match: (name, cat) => {
-      return /\bnesn\b/i.test(name) || /\bnesn\b/i.test(cat);
-    }
-  },
-  {
-    id: 107,
-    name: 'US | YES Network',
-    slug: 'us-yes-network',
-    description: 'YES Network, YES Network Latin, YES Network Overflow',
-    match: (name, cat) => {
-      return /\byes\s*network|\b(gt\)\s*)?yes\s*network\b/i.test(name) || /\byes\s*network\b/i.test(cat);
-    }
-  },
-  {
-    id: 108,
-    name: 'US | Regional Sports (Altitude, Marquee, Spectrum)',
-    slug: 'us-regional-sports',
-    description: 'Altitude Sports, Marquee Sports Network, Spectrum SportsNet',
-    match: (name, cat) => {
-      return /\b(marquee\s*sports?|altitude\s*sports?|spectrum\s*sportsnet)\b/i.test(name);
-    }
-  },
-  {
-    id: 109,
-    name: 'US | NFL',
-    slug: 'us-nfl',
-    description: 'NFL Network, NFL RedZone, NFL Replay Channels',
-    match: (name, cat, country) => {
-      return (/\b(nfl\s*network|nfl\s*redzone|nfl\s*replay)\b/i.test(name) || /nfl\s*replay/i.test(cat) || (/\bnfl\b/i.test(cat) && /\bnfl\b/i.test(name))) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 110,
-    name: 'US | NBA',
-    slug: 'us-nba',
-    description: 'NBA TV, 24/7 NBA Team Channels, NBA Replay Channels',
-    match: (name, cat, country) => {
-      if (/bein/i.test(name)) return false;
-      return (/\b(nba\s*tv|nba\s*replay)\b/i.test(name) || /\bnba:\s*/i.test(name) || /nba\s*team/i.test(cat) || (/\bnba\b/i.test(cat) && !/ppv|pass/i.test(name))) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 111,
-    name: 'US | MLB',
-    slug: 'us-mlb',
-    description: 'MLB Network, 24/7 MLB Team Channels',
-    match: (name, cat, country) => {
-      return (/\b(mlb\s*network|tubi\s*mlb|sling\s*mlb)\b/i.test(name) || /\bmlb\s+[a-z]/i.test(name) || /mlb\s*team/i.test(cat) || (/\bmlb\b/i.test(cat) && !/start:\d+/i.test(name))) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 112,
-    name: 'US | NHL',
-    slug: 'us-nhl',
-    description: 'NHL Network, 24/7 NHL Team Channels, NHL Replay Channels',
-    match: (name, cat, country) => {
-      return (/\b(nhl\s*network|nhl\s*replay|nhl\s*alternate)\b/i.test(name) || /nhl\s*(team|replay)/i.test(cat) || (/\bnhl\b/i.test(cat) && !/^nhl\s*\|\s*\d+/i.test(name))) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 113,
-    name: 'US | Golf Channel',
-    slug: 'us-golf-channel',
-    description: 'Golf Channel & NBC Golf Channel',
-    match: (name, cat) => {
-      return (/\b(golf\s*channel|nbc\s*golf)\b/i.test(name) || /golf\s*channel/i.test(cat));
-    }
-  },
-  {
-    id: 114,
-    name: 'US | Tennis Channel',
-    slug: 'us-tennis-channel',
-    description: 'Tennis Channel & T2 Tennis Channel',
-    match: (name, cat) => {
-      return (/\b(tennis\s*channel|t2\s*tennis)\b/i.test(name) || /tennis\s*channel/i.test(cat));
-    }
-  },
-  {
-    id: 115,
-    name: 'US | BeIN Sports',
-    slug: 'us-bein-sports',
-    description: 'beIN Sports USA & beIN Sports en Español',
-    match: (name, cat, country) => {
-      if (/movies|drama/i.test(name)) return false;
-      return (/\bbein\s*sports?\b|\bbein\s*sp.*?rts\b/i.test(name) || /\bbein\s*sport/i.test(cat)) && (country === 'US' || /\bus\s*:/i.test(name));
-    }
-  },
-  {
-    id: 116,
-    name: 'US | DAZN',
-    slug: 'us-dazn',
-    description: 'DAZN US 24/7 Broadcast Channels',
-    match: (name, cat, country) => {
-      return /\bdazn\b/i.test(name + ' ' + cat) && (country === 'US' || /\b(us|usa)\s*:/i.test(name)) && !isUsEventFeed(name, cat, country);
-    }
-  },
-  {
-    id: 117,
-    name: 'US | Event Feeds',
-    slug: 'us-event-feeds',
-    description: 'All US Live Sports Event Feeds: ESPN+ PPV, FloSports, Flo College, NCAAB, NCAAF, MILB, MLS, Matchroom, DirtVision, Max & Paramount+, Tennis PPV, Golf PPV, NBA Pass, NFL Feeds, MLB & NHL Live Feeds',
-    match: (name, cat, country) => {
-      return isUsEventFeed(name, cat, country);
-    }
-  },
-
-  // ==========================================
-  // --- GROUP 2: UNITED KINGDOM (UK) ---
-  // ==========================================
-  {
-    id: 118,
-    name: 'UK | Sky Sports',
-    slug: 'uk-sky-sports',
-    description: 'UK Sky Sports Main Event, Premier League, Football, F1, Cricket, Golf, Action, Arena, Tennis, News, Mix',
-    match: (name, cat, country) => {
-      if (/cinema|movie|show|arts|mix\s*docs|atlantic/i.test(name)) return false;
-      const isSky = /\bsky\s*sports?\b/i.test(name) || /now.*tv.*sport/i.test(cat) || (/sky.*sport/i.test(cat) && !/cinema|movie/i.test(cat));
-      return isSky && country === 'UK';
-    }
-  },
-  {
-    id: 119,
-    name: 'UK | TNT Sports / BT Sport',
-    slug: 'uk-tnt-sports',
-    description: 'TNT Sports 1, 2, 3, 4, Ultimate, Extra (formerly BT Sport)',
-    match: (name, cat) => {
-      return /\b(tnt\s*sports?|bt\s*sports?)\b/i.test(name) || /\btnt\s*sport/i.test(cat);
+      return /championship\s*ppv/i.test(cat) || /^champ:\s*|efl-ch\s*replay/i.test(name);
     }
   },
   {
@@ -324,6 +150,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
+    id: 131,
+    name: 'UK | Darts, Rugby & Volleyball PPV',
+    slug: 'uk-darts-rugby-ppv',
+    description: 'PDC Board Darts Championship, FloRugby & Volleyball World feeds',
+    match: (name, cat) => {
+      return /pdc\s*board|florugby|volley\s*ball\s*world|tt\s*races/i.test(cat) ||
+             /^pdc\s*board|^florugby|^uk:\s*volley|^uk:\s*tt\s*races/i.test(name);
+    }
+  },
+  {
     id: 121,
     name: 'UK | EPL Premier League PPV',
     slug: 'uk-epl-ppv',
@@ -333,12 +169,12 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 122,
-    name: 'UK | Championship PPV',
-    slug: 'uk-championship-ppv',
-    description: 'English EFL Championship team live match feeds',
+    id: 128,
+    name: 'UK | European League Club PPV',
+    slug: 'uk-euro-club-ppv',
+    description: 'Real Madrid, Barcelona, Atletico, Juventus, Inter, Milan dedicated match feeds',
     match: (name, cat) => {
-      return /championship\s*ppv/i.test(cat) || /^champ:\s*|efl-ch\s*replay/i.test(name);
+      return /la\s*liga\s*team\s*ppv|serie\s*a\s*team\s*ppv/i.test(cat) || /uk:\s*(la\s*liga|serie\s*a)\s*-\s*/i.test(name);
     }
   },
   {
@@ -348,6 +184,15 @@ const BRAND_CATEGORIES = [
     description: 'EFL League One & League Two team match feeds',
     match: (name, cat) => {
       return /league\s*(one|two)\s*ppv/i.test(cat) || /^l[12]:\s*|efl-l[12]\s*replay/i.test(name);
+    }
+  },
+  {
+    id: 130,
+    name: 'UK | Ligue 1 & Friendlies PPV',
+    slug: 'uk-ligue1-psf-ppv',
+    description: 'French Ligue 1 match feeds & Pre-Season Friendlies (PSF)',
+    match: (name, cat) => {
+      return /ligue\s*1\s*ppv|psf\s*ppv/i.test(cat) || /^uk:\s*ligue\s*1|^psf\d+/i.test(name);
     }
   },
   {
@@ -369,30 +214,16 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 126,
-    name: 'UK | UEFA Champions League PPV',
-    slug: 'uk-uefa-cl-ppv',
-    description: 'UEFA Champions League & Europa League match feeds',
-    match: (name, cat) => {
-      return /(uk|us)\|\s*uefa\s*ppv/i.test(cat) || /^uefa\s*\|\s*\d+/i.test(name);
-    }
-  },
-  {
-    id: 127,
-    name: 'UK | Scottish Football PPV (SPFL & Cup)',
-    slug: 'uk-scottish-football-ppv',
-    description: 'Scottish Premiership (SPFL) and Scottish Cup live match feeds',
-    match: (name, cat) => {
-      return /spfl|scottish\s*cup/i.test(cat) || /^spfl:\s*|^scottish\s*cup\s*\d+:/i.test(name);
-    }
-  },
-  {
-    id: 128,
-    name: 'UK | European League Club PPV',
-    slug: 'uk-euro-club-ppv',
-    description: 'Real Madrid, Barcelona, Atletico, Juventus, Inter, Milan dedicated match feeds',
-    match: (name, cat) => {
-      return /la\s*liga\s*team\s*ppv|serie\s*a\s*team\s*ppv/i.test(cat) || /uk:\s*(la\s*liga|serie\s*a)\s*-\s*/i.test(name);
+    id: 1205,
+    name: 'UK | Premier Sports',
+    slug: 'uk-premier-sports',
+    description: 'Premier Sports 1, Premier Sports 2, Premier Sports Rugby, Premier Sports Ireland (4K, HD, RAW)',
+    match: (name, cat, country) => {
+      if (/hk\s*now|now\s*premier/i.test(name)) return false;
+      const isPremier = /\bpremier\s*sports?\b/i.test(name) || /premier\s*sports?/i.test(cat);
+      if (!isPremier) return false;
+      if (country === 'PH' || country === 'CZ' || /\b(ph|cz)\s*:/i.test(name)) return false;
+      return true;
     }
   },
   {
@@ -406,22 +237,204 @@ const BRAND_CATEGORIES = [
     }
   },
   {
-    id: 130,
-    name: 'UK | Ligue 1 & Friendlies PPV',
-    slug: 'uk-ligue1-psf-ppv',
-    description: 'French Ligue 1 match feeds & Pre-Season Friendlies (PSF)',
+    id: 127,
+    name: 'UK | Scottish Football PPV (SPFL & Cup)',
+    slug: 'uk-scottish-football-ppv',
+    description: 'Scottish Premiership (SPFL) and Scottish Cup live match feeds',
     match: (name, cat) => {
-      return /ligue\s*1\s*ppv|psf\s*ppv/i.test(cat) || /^uk:\s*ligue\s*1|^psf\d+/i.test(name);
+      return /spfl|scottish\s*cup/i.test(cat) || /^spfl:\s*|^scottish\s*cup\s*\d+:/i.test(name);
     }
   },
   {
-    id: 131,
-    name: 'UK | Darts, Rugby & Volleyball PPV',
-    slug: 'uk-darts-rugby-ppv',
-    description: 'PDC Board Darts Championship, FloRugby & Volleyball World feeds',
+    id: 118,
+    name: 'UK | Sky Sports',
+    slug: 'uk-sky-sports',
+    description: 'UK Sky Sports Main Event, Premier League, Football, F1, Cricket, Golf, Action, Arena, Tennis, News, Mix',
+    match: (name, cat, country) => {
+      if (/cinema|movie|show|arts|mix\s*docs|atlantic/i.test(name)) return false;
+      const isSky = /\bsky\s*sports?\b/i.test(name) || /now.*tv.*sport/i.test(cat) || (/sky.*sport/i.test(cat) && !/cinema|movie/i.test(cat));
+      return isSky && country === 'UK';
+    }
+  },
+  {
+    id: 119,
+    name: 'UK | TNT Sports / BT Sport',
+    slug: 'uk-tnt-sports',
+    description: 'TNT Sports 1, 2, 3, 4, Ultimate, Extra (formerly BT Sport)',
     match: (name, cat) => {
-      return /pdc\s*board|florugby|volley\s*ball\s*world|tt\s*races/i.test(cat) ||
-             /^pdc\s*board|^florugby|^uk:\s*volley|^uk:\s*tt\s*races/i.test(name);
+      return /\b(tnt\s*sports?|bt\s*sports?)\b/i.test(name) || /\btnt\s*sport/i.test(cat);
+    }
+  },
+  {
+    id: 126,
+    name: 'UK | UEFA Champions League PPV',
+    slug: 'uk-uefa-cl-ppv',
+    description: 'UEFA Champions League & Europa League match feeds',
+    match: (name, cat) => {
+      return /(uk|us)\|\s*uefa\s*ppv/i.test(cat) || /^uefa\s*\|\s*\d+/i.test(name);
+    }
+  },
+
+  // ==========================================
+  // --- GROUP 2: UNITED STATES (US) - ALPHABETICAL ---
+  // ==========================================
+  {
+    id: 105,
+    name: 'US | Bally Sports',
+    slug: 'us-bally-sports',
+    description: 'Bally Sports Regional Networks & FanDuel Sports Network (Arizona, Detroit, Florida, Midwest, North, Ohio, South, Sun, West, Wisconsin)',
+    match: (name, cat) => {
+      return /\b(bally\s*sports?|fanduel\s*sports?)\b/i.test(name) || /\bbally/i.test(cat);
+    }
+  },
+  {
+    id: 115,
+    name: 'US | BeIN Sports',
+    slug: 'us-bein-sports',
+    description: 'beIN Sports USA & beIN Sports en Español',
+    match: (name, cat, country) => {
+      if (/movies|drama/i.test(name)) return false;
+      return (/\bbein\s*sports?\b|\bbein\s*sp.*?rts\b/i.test(name) || /\bbein\s*sport/i.test(cat)) && (country === 'US' || /\bus\s*:/i.test(name));
+    }
+  },
+  {
+    id: 104,
+    name: 'US | CBS Sports',
+    slug: 'us-cbs-sports',
+    description: 'CBS Sports Network, CBS Sports Golazo Network, CBS Sports HQ, CBS Sports USA',
+    match: (name, cat) => {
+      return /\b(cbs\s*sports?)\b/i.test(name) || /\b(cbs\s*sport)\b/i.test(cat);
+    }
+  },
+  {
+    id: 116,
+    name: 'US | DAZN',
+    slug: 'us-dazn',
+    description: 'DAZN US 24/7 Broadcast Channels',
+    match: (name, cat, country) => {
+      return /\bdazn\b/i.test(name + ' ' + cat) && (country === 'US' || /\b(us|usa)\s*:/i.test(name)) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 101,
+    name: 'US | ESPN Networks',
+    slug: 'us-espn',
+    description: 'ESPN, ESPN2, ESPNU, ESPNews, ESPN Deportes, SEC, ACC (24/7 Linear Broadcasts)',
+    match: (name, cat, country) => {
+      if (/radio/i.test(name)) return false;
+      const isEspn = /\bespn\b|\bsec\s*network\b|\bacc\s*network\b/i.test(name) || /\bespn/i.test(cat);
+      return isEspn && (country === 'US' || /\bus\s*:/i.test(name) || !country) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 117,
+    name: 'US | Event Feeds',
+    slug: 'us-event-feeds',
+    description: 'All US Live Sports Event Feeds: ESPN+ PPV, FloSports, Flo College, NCAAB, NCAAF, MILB, MLS, Matchroom, DirtVision, Max & Paramount+, Tennis PPV, Golf PPV, NBA Pass, NFL Feeds, MLB & NHL Live Feeds',
+    match: (name, cat, country) => {
+      return isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 102,
+    name: 'US | Fox Sports',
+    slug: 'us-fox-sports',
+    description: 'FS1, FS2, Fox Sports 1, Fox Sports 2, Fox Sports Racing (24/7 Linear Broadcasts)',
+    match: (name, cat, country) => {
+      if (/news|movies|series/i.test(name)) return false;
+      const isFox = /\bfox\s*sports?\b|\bfs[12]\b/i.test(name) || /\bfox\s*sport/i.test(cat);
+      return isFox && (country === 'US' || /\bus\s*:/i.test(name) || !country) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 113,
+    name: 'US | Golf Channel',
+    slug: 'us-golf-channel',
+    description: 'Golf Channel & NBC Golf Channel',
+    match: (name, cat) => {
+      return (/\b(golf\s*channel|nbc\s*golf)\b/i.test(name) || /golf\s*channel/i.test(cat));
+    }
+  },
+  {
+    id: 111,
+    name: 'US | MLB',
+    slug: 'us-mlb',
+    description: 'MLB Network, 24/7 MLB Team Channels',
+    match: (name, cat, country) => {
+      return (/\b(mlb\s*network|tubi\s*mlb|sling\s*mlb)\b/i.test(name) || /\bmlb\s+[a-z]/i.test(name) || /mlb\s*team/i.test(cat) || (/\bmlb\b/i.test(cat) && !/start:\d+/i.test(name))) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 110,
+    name: 'US | NBA',
+    slug: 'us-nba',
+    description: 'NBA TV, 24/7 NBA Team Channels, NBA Replay Channels',
+    match: (name, cat, country) => {
+      if (/bein/i.test(name)) return false;
+      return (/\b(nba\s*tv|nba\s*replay)\b/i.test(name) || /\bnba:\s*/i.test(name) || /nba\s*team/i.test(cat) || (/\bnba\b/i.test(cat) && !/ppv|pass/i.test(name))) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 103,
+    name: 'US | NBC Sports',
+    slug: 'us-nbc-sports',
+    description: 'NBC Sports Bay Area, Boston, California, Chicago, Philadelphia, NBC Sports Now',
+    match: (name, cat) => {
+      return (/\b(nbc\s*sports?)\b/i.test(name) || /\b(nbc\s*sport)\b/i.test(cat)) && !/golf/i.test(name);
+    }
+  },
+  {
+    id: 106,
+    name: 'US | NESN',
+    slug: 'us-nesn',
+    description: 'NESN, NESN+, NESN Boston, NESN Nation',
+    match: (name, cat) => {
+      return /\bnesn\b/i.test(name) || /\bnesn\b/i.test(cat);
+    }
+  },
+  {
+    id: 109,
+    name: 'US | NFL',
+    slug: 'us-nfl',
+    description: 'NFL Network, NFL RedZone, NFL Replay Channels',
+    match: (name, cat, country) => {
+      return (/\b(nfl\s*network|nfl\s*redzone|nfl\s*replay)\b/i.test(name) || /nfl\s*replay/i.test(cat) || (/\bnfl\b/i.test(cat) && /\bnfl\b/i.test(name))) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 112,
+    name: 'US | NHL',
+    slug: 'us-nhl',
+    description: 'NHL Network, 24/7 NHL Team Channels, NHL Replay Channels',
+    match: (name, cat, country) => {
+      return (/\b(nhl\s*network|nhl\s*replay|nhl\s*alternate)\b/i.test(name) || /nhl\s*(team|replay)/i.test(cat) || (/\bnhl\b/i.test(cat) && !/^nhl\s*\|\s*\d+/i.test(name))) && !isUsEventFeed(name, cat, country);
+    }
+  },
+  {
+    id: 108,
+    name: 'US | Regional Sports (Altitude, Marquee, Spectrum)',
+    slug: 'us-regional-sports',
+    description: 'Altitude Sports, Marquee Sports Network, Spectrum SportsNet',
+    match: (name, cat) => {
+      return /\b(marquee\s*sports?|altitude\s*sports?|spectrum\s*sportsnet)\b/i.test(name);
+    }
+  },
+  {
+    id: 114,
+    name: 'US | Tennis Channel',
+    slug: 'us-tennis-channel',
+    description: 'Tennis Channel & T2 Tennis Channel',
+    match: (name, cat) => {
+      return (/\b(tennis\s*channel|t2\s*tennis)\b/i.test(name) || /tennis\s*channel/i.test(cat));
+    }
+  },
+  {
+    id: 107,
+    name: 'US | YES Network',
+    slug: 'us-yes-network',
+    description: 'YES Network, YES Network Latin, YES Network Overflow',
+    match: (name, cat) => {
+      return /\byes\s*network|\b(gt\)\s*)?yes\s*network\b/i.test(name) || /\byes\s*network\b/i.test(cat);
     }
   },
 
@@ -905,15 +918,15 @@ function getFallbackEpg(name) {
 
 // Country code weight for descending alphabetical sort:
 // AS is highest (110000 - TOP of the list!)
-// US is next (100000)
-// UK is second (90000)
+// UK is next (100000)
+// US is third (90000)
 // Then other countries descending alphabetically (ZA, RS, PT, PL, NZ, IT, etc.)
 // Emojis / Unidentified (❓) are lowest (bottom)
 function getCountryWeight(code) {
   if (!code || code === '❓' || code === 'INT' || code === 'OTHER' || code === 'PPV') return -999999;
   if (code === 'AS' || code === 'ASIA') return 110000;
-  if (code === 'US') return 100000;
-  if (code === 'UK' || code === 'GB') return 90000;
+  if (code === 'UK' || code === 'GB') return 100000;
+  if (code === 'US') return 90000;
   return ((code.charCodeAt(0) || 0) * 100) + (code.charCodeAt(1) || 0);
 }
 
